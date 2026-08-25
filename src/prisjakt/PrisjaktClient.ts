@@ -1,9 +1,7 @@
 import { parsePrisjaktSearch } from "./PrisjaktSearchParser.js";
 import type { PrisjaktProductSummary } from "./types.js";
 
-export async function searchPrisjakt(
-  url: string,
-): Promise<PrisjaktProductSummary[]> {
+export async function fetchPrisjaktPage(url: string): Promise<string> {
   const response = await fetch(url, {
     headers: {
       "user-agent": "Mozilla/5.0 (compatible; pc-price-tracker/0.1)",
@@ -17,7 +15,13 @@ export async function searchPrisjakt(
     );
   }
 
-  const html = await response.text();
+  return response.text();
+}
+
+export async function searchPrisjakt(
+  url: string,
+): Promise<PrisjaktProductSummary[]> {
+  const html = await fetchPrisjaktPage(url);
 
   return parsePrisjaktSearch(html);
 }

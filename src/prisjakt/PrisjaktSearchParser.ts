@@ -40,7 +40,12 @@ export function parsePrisjaktSearch(html: string): PrisjaktProductSummary[] {
         return;
       }
 
-      const name = card.find('[data-test="ProductName"]').first().text().trim();
+      const name = card
+        .find('[data-test="ProductName"]')
+        .first()
+        .text()
+        .replace(/\s+/g, " ")
+        .trim();
 
       if (!name) {
         return;

@@ -4,3 +4,9 @@ export interface PrisjaktProductSummary {
   priceSek: number;
   url: string;
 }
+
+export interface PrisjaktProductDetails {
+  brand: string;
+  description: string;
+  imageUrl: string;
+}

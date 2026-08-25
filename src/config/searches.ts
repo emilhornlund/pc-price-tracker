@@ -1,12 +1,4 @@
-export type ComponentCategory =
-  | "cpu"
-  | "cpu-cooler"
-  | "motherboard"
-  | "memory"
-  | "storage"
-  | "gpu"
-  | "case"
-  | "psu";
+import type { ComponentCategory } from "../domain/ComponentCategory.js";
 
 export interface SearchDefinition {
   id: string;

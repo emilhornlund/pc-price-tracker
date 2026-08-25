@@ -16,10 +16,19 @@ export function openDatabase(path: string): DatabaseSync {
       CREATE TABLE IF NOT EXISTS products (
         id INTEGER PRIMARY KEY,
         prisjakt_id TEXT NOT NULL UNIQUE,
+        category TEXT NOT NULL,
         name TEXT NOT NULL,
         url TEXT NOT NULL,
         first_seen_at TEXT NOT NULL,
         last_seen_at TEXT NOT NULL
+      ) STRICT;
+
+      CREATE TABLE IF NOT EXISTS product_details (
+        product_id INTEGER PRIMARY KEY,
+        brand TEXT NOT NULL,
+        description TEXT NOT NULL,
+        image_url TEXT NOT NULL,
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
       ) STRICT;
     `);
 
