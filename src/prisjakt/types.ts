@@ -1,5 +1,6 @@
 export interface PrisjaktProductSummary {
   id: string;
-  description: string;
+  name: string;
+  priceSek: number;
   url: string;
 }

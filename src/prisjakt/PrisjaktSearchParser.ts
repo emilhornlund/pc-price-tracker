@@ -4,43 +4,66 @@ import type { PrisjaktProductSummary } from "./types.js";
 
 const PRISJAKT_BASE_URL = "https://www.prisjakt.nu";
 
+function parsePriceSek(text: string): number | undefined {
+  const match = text.trim().match(/^([\d\s\u00a0]+)\s*kr$/);
+
+  if (!match?.[1]) {
+    return undefined;
+  }
+
+  const normalized = match[1].replace(/[\s\u00a0]/g, "");
+  const price = Number.parseInt(normalized, 10);
+
+  return Number.isNaN(price) ? undefined : price;
+}
+
 export function parsePrisjaktSearch(html: string): PrisjaktProductSummary[] {
   const $ = cheerio.load(html);
 
-  const products = $("a")
-    .map((_, element) => {
-      const link = $(element);
+  const products: PrisjaktProductSummary[] = [];
+
+  $('ul[data-test="ProductGrid"] > li[data-test="ProductGridCard"]').each(
+    (_, element) => {
+      const card = $(element);
+
+      const link = card.find('a[data-test="InternalLink"]').first();
       const href = link.attr("href");
 
-      if (!href?.includes("/produkt.php?p=")) {
-        return undefined;
+      if (!href) {
+        return;
       }
 
       const productUrl = new URL(href, PRISJAKT_BASE_URL);
       const id = productUrl.searchParams.get("p");
 
       if (!id) {
-        return undefined;
+        return;
       }
 
-      const text = link.text().trim().replace(/\s+/g, " ");
+      const name = card.find('[data-test="ProductName"]').first().text().trim();
 
-      if (!text) {
-        return undefined;
+      if (!name) {
+        return;
       }
 
-      return {
+      const priceSek = card
+        .find("span")
+        .toArray()
+        .map((element) => parsePriceSek($(element).text()))
+        .find((price) => price !== undefined);
+
+      if (priceSek === undefined) {
+        return;
+      }
+
+      products.push({
         id,
-        description: text,
+        name,
+        priceSek,
         url: productUrl.toString(),
-      } satisfies PrisjaktProductSummary;
-    })
-    .get()
-    .filter(
-      (product): product is PrisjaktProductSummary => product !== undefined,
-    );
+      });
+    },
+  );
 
-  return [
-    ...new Map(products.map((product) => [product.id, product])).values(),
-  ];
+  return products;
 }
