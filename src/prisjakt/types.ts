@@ -9,4 +9,5 @@ export interface PrisjaktProductDetails {
   brand: string;
   description: string;
   imageUrl: string;
+  priceSek: number;
 }

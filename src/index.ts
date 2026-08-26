@@ -44,7 +44,7 @@ try {
   console.log(product.url);
 
   const productHtml = await fetchPrisjaktPage(product.url);
-  const details = parsePrisjaktProduct(productHtml);
+  const { priceSek, ...details } = parsePrisjaktProduct(productHtml);
 
   productRepository.upsertDetails(product.id, details);
 
@@ -53,6 +53,9 @@ try {
 
   console.log("Persisted product details:");
   console.table([details]);
+
+  console.log("Authoritative current price:");
+  console.table([{ priceSek }]);
 } finally {
   database.close();
 }

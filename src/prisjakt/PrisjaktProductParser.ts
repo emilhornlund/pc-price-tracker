@@ -9,6 +9,38 @@ interface ProductStructuredData {
   brand?: {
     name?: unknown;
   };
+  offers?: unknown;
+}
+
+interface ProductOffers {
+  lowPrice?: unknown;
+  priceCurrency?: unknown;
+}
+
+function parsePriceSek(offers: unknown): number {
+  if (typeof offers !== "object" || offers === null || Array.isArray(offers)) {
+    throw new Error("Prisjakt product offers not found");
+  }
+
+  const { lowPrice, priceCurrency } = offers as ProductOffers;
+
+  if (typeof priceCurrency !== "string" || !priceCurrency.trim()) {
+    throw new Error("Prisjakt product price currency not found");
+  }
+
+  if (priceCurrency !== "SEK") {
+    throw new Error("Prisjakt product price currency is not SEK");
+  }
+
+  if (
+    typeof lowPrice !== "number" ||
+    !Number.isInteger(lowPrice) ||
+    lowPrice < 0
+  ) {
+    throw new Error("Prisjakt product low price is invalid");
+  }
+
+  return lowPrice;
 }
 
 export function parsePrisjaktProduct(html: string): PrisjaktProductDetails {
@@ -61,9 +93,13 @@ export function parsePrisjaktProduct(html: string): PrisjaktProductDetails {
     throw new Error("Prisjakt product image not found");
   }
 
+  // AggregateOffer.lowPrice is the currency-qualified lowest offer on the product page.
+  const priceSek = parsePriceSek(productData.offers);
+
   return {
     brand: brand.trim(),
     description: description.trim(),
     imageUrl: image.trim(),
+    priceSek,
   };
 }
