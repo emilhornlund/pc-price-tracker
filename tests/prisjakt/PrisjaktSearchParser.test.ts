@@ -5,50 +5,6 @@ import { readFile } from "node:fs/promises";
 import { parsePrisjaktSearch } from "../../src/prisjakt/PrisjaktSearchParser.js";
 
 describe("parsePrisjaktSearch", () => {
-  it("extracts products from the main product grid", () => {
-    const html = `
-      <ul data-test="ProductGrid">
-        <li data-test="ProductGridCard">
-          <article data-test="ProductGridCard">
-            <a data-test="InternalLink" href="/produkt.php?p=14547423">
-              <span data-test="ProductName">
-                Crucial Pro OC DDR5 6000MHz 2x32GB
-              </span>
-              <span>2 st, 40, DDR5</span>
-              <span>9&nbsp;039&nbsp;kr</span>
-            </a>
-          </article>
-        </li>
-
-        <li data-test="ProductGridCard">
-          <article data-test="ProductGridCard">
-            <a data-test="InternalLink" href="/produkt.php?p=13817544">
-              <span data-test="ProductName">
-                G.Skill Trident Z5 Neo RGB DDR5 6000MHz 2x32GB
-              </span>
-              <span>9&nbsp;999&nbsp;kr</span>
-            </a>
-          </article>
-        </li>
-      </ul>
-    `;
-
-    expect(parsePrisjaktSearch(html)).toEqual([
-      {
-        id: "14547423",
-        name: "Crucial Pro OC DDR5 6000MHz 2x32GB",
-        priceSek: 9039,
-        url: "https://www.prisjakt.nu/produkt.php?p=14547423",
-      },
-      {
-        id: "13817544",
-        name: "G.Skill Trident Z5 Neo RGB DDR5 6000MHz 2x32GB",
-        priceSek: 9999,
-        url: "https://www.prisjakt.nu/produkt.php?p=13817544",
-      },
-    ]);
-  });
-
   it("ignores product cards outside the main product grid", () => {
     const html = `
       <section>
@@ -156,12 +112,64 @@ describe("parsePrisjaktSearch", () => {
     const products = parsePrisjaktSearch(html);
 
     expect(products).toHaveLength(29);
+    expect(products.map((product) => product.id)).toEqual([
+      "14547423",
+      "13817544",
+      "14547416",
+      "13954141",
+      "14103662",
+      "15514369",
+      "14811090",
+      "11995747",
+      "12917181",
+      "15514375",
+      "11655318",
+      "15355789",
+      "14103673",
+      "11661376",
+      "14103672",
+      "14103665",
+      "14103671",
+      "14103658",
+      "11661904",
+      "14840424",
+      "14104155",
+      "11226586",
+      "11534845",
+      "14299020",
+      "10312076",
+      "16393482",
+      "13438177",
+      "11995707",
+      "11656326",
+    ]);
 
     expect(products[0]).toEqual({
       id: "14547423",
       name: "Crucial Pro OC DDR5 6000MHz 2x32GB (CP2K32G60C40U5B)",
       priceSek: 9039,
       url: "https://www.prisjakt.nu/produkt.php?p=14547423",
+    });
+
+    expect(products[1]).toEqual({
+      id: "13817544",
+      name: "G.Skill Trident Z5 Neo RGB DDR5 6000MHz 2x32GB (F5-6000J3040G32GX2-TZ5NR)",
+      priceSek: 9999,
+      url: "https://www.prisjakt.nu/produkt.php?p=13817544",
+    });
+
+    expect(products[14]).toEqual({
+      id: "14103672",
+      name: "G.Skill Flare X5 White DDR5 6000MHz 2x32GB (F5-6000J3636F32GX2-FX5W)",
+      priceSek: 12478,
+      url: "https://www.prisjakt.nu/produkt.php?p=14103672",
+    });
+
+    expect(products[28]).toEqual({
+      id: "11656326",
+      name: "Corsair Vengeance Black DDR5 6000MHz 2x32GB (CMK64GX5M2B6000Z30)",
+      priceSek: 14999,
+      url: "https://www.prisjakt.nu/produkt.php?p=11656326",
     });
   });
 });
