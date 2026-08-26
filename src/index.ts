@@ -44,9 +44,11 @@ try {
   console.log(product.url);
 
   const productHtml = await fetchPrisjaktPage(product.url);
-  const { priceSek, ...details } = parsePrisjaktProduct(productHtml);
+  const { offers, priceSek, ...details } = parsePrisjaktProduct(productHtml);
+  const observedAt = new Date().toISOString();
 
   productRepository.upsertDetails(product.id, details);
+  productRepository.upsertOffers(product.id, offers, observedAt);
 
   console.log("Persisted product:");
   console.table([product]);
@@ -56,6 +58,9 @@ try {
 
   console.log("Authoritative current price:");
   console.table([{ priceSek }]);
+
+  console.log("Parsed product offers:");
+  console.table(offers);
 } finally {
   database.close();
 }
