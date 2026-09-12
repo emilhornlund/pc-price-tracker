@@ -164,7 +164,7 @@ Add tests for both valid and invalid configuration.
 
 ---
 
-## [ ] 6. Resolve configuration secrets from environment variables
+## [X] 6. Resolve configuration secrets from environment variables
 
 Implement SMTP secret resolution.
 

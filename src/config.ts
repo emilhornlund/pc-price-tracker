@@ -35,6 +35,11 @@ export interface AppConfig {
   notifications: NotificationsConfig;
 }
 
+export interface SmtpCredentials {
+  username: string;
+  password: string;
+}
+
 export class ConfigValidationError extends Error {
   constructor(public readonly issues: string[]) {
     super(
@@ -44,6 +49,18 @@ export class ConfigValidationError extends Error {
       ].join('\n'),
     );
     this.name = 'ConfigValidationError';
+  }
+}
+
+export class ConfigSecretResolutionError extends Error {
+  constructor(public readonly missingVariables: string[]) {
+    super(
+      [
+        'Missing required SMTP environment variables:',
+        ...missingVariables.map((variable) => `- ${variable}`),
+      ].join('\n'),
+    );
+    this.name = 'ConfigSecretResolutionError';
   }
 }
 
@@ -66,6 +83,37 @@ export function loadConfig(configPath = getDefaultConfigPath()): AppConfig {
   const source = readFileSync(resolvedPath, 'utf8');
 
   return parseConfig(source);
+}
+
+export function resolveConfigSecrets(
+  config: AppConfig,
+  environment: NodeJS.ProcessEnv = process.env,
+): SmtpCredentials | undefined {
+  const email = config.notifications.email;
+
+  if (!email.enabled) {
+    return undefined;
+  }
+
+  const username = environment[email.smtp.usernameEnv];
+  const password = environment[email.smtp.passwordEnv];
+  const missingVariables = [
+    username === undefined || username.trim() === ''
+      ? email.smtp.usernameEnv
+      : undefined,
+    password === undefined || password.trim() === ''
+      ? email.smtp.passwordEnv
+      : undefined,
+  ].filter((variable): variable is string => variable !== undefined);
+
+  if (missingVariables.length > 0) {
+    throw new ConfigSecretResolutionError([...new Set(missingVariables)]);
+  }
+
+  return {
+    username: username!,
+    password: password!,
+  };
 }
 
 export function validateConfig(config: unknown): asserts config is AppConfig {

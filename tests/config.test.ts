@@ -4,8 +4,10 @@ import path from 'node:path';
 
 import {
   AppConfig,
+  ConfigSecretResolutionError,
   getDefaultConfigPath,
   loadConfig,
+  resolveConfigSecrets,
   validateConfig,
 } from '../src/config';
 
@@ -180,6 +182,50 @@ notifications:
     config.notifications.email.smtp.port = 0;
 
     expect(() => validateConfig(config)).not.toThrow();
+  });
+});
+
+describe('configuration secret resolution', () => {
+  it('resolves SMTP credentials from the configured environment variables', () => {
+    const config = createValidConfig();
+
+    expect(
+      resolveConfigSecrets(config, {
+        SMTP_USERNAME: 'smtp-user',
+        SMTP_PASSWORD: 'smtp-password',
+      }),
+    ).toEqual({
+      username: 'smtp-user',
+      password: 'smtp-password',
+    });
+  });
+
+  it('fails without exposing values when required secrets are missing', () => {
+    const config = createValidConfig();
+    const environment = {
+      SMTP_USERNAME: 'configured-user',
+      SMTP_PASSWORD: '',
+    };
+
+    expect(() => resolveConfigSecrets(config, environment)).toThrow(
+      'Missing required SMTP environment variables:\n- SMTP_PASSWORD',
+    );
+
+    try {
+      resolveConfigSecrets(config, environment);
+    } catch (error) {
+      expect(error).toBeInstanceOf(ConfigSecretResolutionError);
+      expect((error as ConfigSecretResolutionError).message).not.toContain(
+        'configured-user',
+      );
+    }
+  });
+
+  it('does not require SMTP secrets when email is disabled', () => {
+    const config = createValidConfig();
+    config.notifications.email.enabled = false;
+
+    expect(resolveConfigSecrets(config, {})).toBeUndefined();
   });
 });
 
