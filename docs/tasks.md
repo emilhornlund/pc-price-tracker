@@ -72,7 +72,7 @@ yarn build
 
 ---
 
-## [ ] 3. Add Jest test infrastructure
+## [X] 3. Add Jest test infrastructure
 
 Set up the project's automated test infrastructure.
 

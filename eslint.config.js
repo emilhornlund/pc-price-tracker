@@ -9,7 +9,7 @@ module.exports = tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['eslint.config.js'],
+    files: ['eslint.config.js', 'jest.config.js'],
     languageOptions: {
       globals: {
         module: 'readonly',
