@@ -52,6 +52,7 @@ export interface AggregateScanResult {
 export interface ScanExecutionDependencies extends ProductScanDependencies {
   emailSender?: EmailSender;
   notificationRepository?: NotificationRepository;
+  notificationsEnabled?: boolean;
 }
 
 export interface ScanExecutionResult extends AggregateScanResult {
@@ -147,6 +148,11 @@ export async function executeScan(
 
   if (result.decreases.length === 0) {
     logger.info('Email skipped: no price decreases');
+    return { ...result, emailSent: false };
+  }
+
+  if (dependencies.notificationsEnabled === false) {
+    logger.info('Email skipped: notifications are disabled');
     return { ...result, emailSent: false };
   }
 

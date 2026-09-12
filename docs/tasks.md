@@ -730,7 +730,7 @@ Keep the design simple while preserving enough state for later retry improvement
 
 ---
 
-## [ ] 29. Implement manual scan execution
+## [X] 29. Implement manual scan execution
 
 Provide a simple way to execute a scan immediately.
 
