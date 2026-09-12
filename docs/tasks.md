@@ -684,7 +684,7 @@ Add orchestration tests.
 
 ---
 
-## [ ] 27. Add notification persistence
+## [X] 27. Add notification persistence
 
 Create minimal persistence for successfully sent notifications.
 
