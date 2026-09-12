@@ -42,4 +42,3 @@ When all tasks are complete:
 2. Confirm that `docs/tasks.md` contains no remaining incomplete tasks.
 3. Confirm that the working tree is clean.
 4. Report the completed tasks and commits.
-

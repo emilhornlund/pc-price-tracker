@@ -256,7 +256,7 @@ Add fixture-based tests.
 
 ---
 
-## [ ] 10. Parse store offers
+## [X] 10. Parse store offers
 
 Extend the Prisjakt parser to extract all currently available store offers.
 

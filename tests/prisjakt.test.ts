@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import {
   fetchPrisjaktProductPage,
+  parsePrisjaktProductOffers,
   parsePrisjaktProductTitle,
   PrisjaktProductParseError,
 } from '../src/prisjakt';
@@ -34,6 +35,45 @@ describe('parsePrisjaktProductTitle', () => {
     expect(() =>
       parsePrisjaktProductTitle('<html><body><p>Product</p></body></html>'),
     ).toThrow('product title was not found in an h1 element');
+  });
+});
+
+describe('parsePrisjaktProductOffers', () => {
+  it('extracts every store offer from a Prisjakt fixture', () => {
+    const html = readFileSync(
+      path.join(__dirname, 'fixtures', 'product-13438192.html'),
+      'utf8',
+    );
+
+    expect(parsePrisjaktProductOffers(html)).toEqual([
+      { store: 'NetOnNet', storeId: '2', price: 1_099_000 },
+      { store: 'Komplett.se', storeId: '33', price: 1_355_700 },
+      { store: 'Webhallen', storeId: '113', price: 1_359_900 },
+      { store: 'CS MEGASTORE', storeId: '31588', price: 1_409_700 },
+      {
+        store: 'CDON',
+        storeId: '429',
+        price: 1_409_700,
+      },
+      { store: 'Proshop', storeId: '12419', price: 1_481_500 },
+    ]);
+  });
+
+  it('ignores list entries that are not complete store offers', () => {
+    const html = `
+      <div data-test="OfferListItem">
+        <a data-test="OfferClickoutButton"><img alt="Missing price" /></a>
+      </div>
+      <div data-test="OfferListItem">
+        <a data-test="OfferClickoutButton" href="/go-to-shop/12/offer/3">
+          <img alt="Valid store" /><h4>1 499 kr</h4>
+        </a>
+      </div>
+    `;
+
+    expect(parsePrisjaktProductOffers(html)).toEqual([
+      { store: 'Valid store', storeId: '12', price: 149_900 },
+    ]);
   });
 });
 
