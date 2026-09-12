@@ -5,6 +5,7 @@ import path from 'node:path';
 import {
   AppConfig,
   ConfigSecretResolutionError,
+  DEFAULT_CONTAINER_CONFIG_PATH,
   getDefaultConfigPath,
   loadConfig,
   resolveConfigSecrets,
@@ -86,6 +87,18 @@ notifications:
     try {
       expect(getDefaultConfigPath()).toBe(configPath);
       expect(loadConfig()).toEqual({ products: [] });
+    } finally {
+      cwdSpy.mockRestore();
+    }
+  });
+
+  it('uses the production container config path from the production workdir', () => {
+    const cwdSpy = jest
+      .spyOn(process, 'cwd')
+      .mockReturnValue('/opt/pc-price-tracker');
+
+    try {
+      expect(getDefaultConfigPath()).toBe(DEFAULT_CONTAINER_CONFIG_PATH);
     } finally {
       cwdSpy.mockRestore();
     }

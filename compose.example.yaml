@@ -1,0 +1,21 @@
+services:
+  pc-price-tracker:
+    image: pc-price-tracker:latest
+    restart: unless-stopped
+    configs:
+      - source: pc-price-tracker-config
+        target: /opt/pc-price-tracker/config.yaml
+
+configs:
+  pc-price-tracker-config:
+    content: |
+      products:
+        - https://www.prisjakt.nu/produkt.php?p=13438192
+
+      schedule:
+        cron: "0 7,19 * * *"
+        timezone: "Europe/Stockholm"
+
+      notifications:
+        email:
+          enabled: false

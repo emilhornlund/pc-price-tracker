@@ -866,7 +866,7 @@ Verify the image builds locally.
 
 ---
 
-## [ ] 35. Add Docker configuration support
+## [X] 35. Add Docker configuration support
 
 Ensure the container works with a mounted/configured YAML file.
 

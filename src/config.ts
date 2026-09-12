@@ -3,6 +3,8 @@ import path from 'node:path';
 import yaml from 'js-yaml';
 
 export const CONFIG_FILE_NAME = 'config.yaml';
+export const DEFAULT_CONTAINER_CONFIG_PATH =
+  '/opt/pc-price-tracker/config.yaml';
 
 export interface ScheduleConfig {
   cron: string;
@@ -65,6 +67,10 @@ export class ConfigSecretResolutionError extends Error {
 }
 
 export function getDefaultConfigPath(): string {
+  if (process.cwd() === path.dirname(DEFAULT_CONTAINER_CONFIG_PATH)) {
+    return DEFAULT_CONTAINER_CONFIG_PATH;
+  }
+
   return path.resolve(process.cwd(), CONFIG_FILE_NAME);
 }
 
