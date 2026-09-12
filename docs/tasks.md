@@ -600,7 +600,7 @@ Requirements:
 
 ---
 
-## [ ] 24. Build email content from price decreases
+## [X] 24. Build email content from price decreases
 
 Implement pure email content generation.
 
