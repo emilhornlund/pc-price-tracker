@@ -1067,7 +1067,7 @@ Avoid live Prisjakt requests in the automated test suite.
 
 ---
 
-## [ ] 42. Review and simplify project structure
+## [X] 42. Review and simplify project structure
 
 Before considering version 1 complete, review the implementation for unnecessary complexity.
 
