@@ -2,19 +2,19 @@ products:
   - https://www.prisjakt.nu/produkt.php?p=13438192
 
 schedule:
-  cron: "0 7,19 * * *"
-  timezone: "Europe/Stockholm"
+  cron: '0 7,19 * * *'
+  timezone: 'Europe/Stockholm'
 
 notifications:
   email:
     enabled: true
     recipients:
-      - "example@example.com"
-    from: "example@example.com"
+      - 'example@example.com'
+    from: 'example@example.com'
     smtp:
-      host: "smtp.example.com"
+      host: 'smtp.example.com'
       port: 587
       secure: false
-      usernameEnv: "SMTP_USERNAME"
-      passwordEnv: "SMTP_PASSWORD"
+      usernameEnv: 'SMTP_USERNAME'
+      passwordEnv: 'SMTP_PASSWORD'
       timeoutSeconds: 30

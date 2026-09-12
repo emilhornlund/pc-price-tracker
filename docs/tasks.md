@@ -14,20 +14,21 @@ Initialize the project as a Yarn-based Node.js and TypeScript application.
 
 Implement:
 
-* Use Yarn as the package manager.
-* Commit `yarn.lock`.
-* Add TypeScript.
-* Add the Node.js type definitions.
-* Create `tsconfig.json`.
-* Use `src/main.ts` as the application entry point.
-* Configure compilation into `dist/`.
-* Add the initial scripts:
+- Use Yarn as the package manager.
+- Commit `yarn.lock`.
+- Add TypeScript.
+- Add the Node.js type definitions.
+- Create `tsconfig.json`.
+- Use `src/main.ts` as the application entry point.
+- Configure compilation into `dist/`.
+- Add the initial scripts:
 
-  * `yarn build`
-  * `yarn start`
-  * `yarn typecheck`
-* Update `.gitignore` as necessary.
-* Ensure the compiled application can start successfully.
+  - `yarn build`
+  - `yarn start`
+  - `yarn typecheck`
+
+- Update `.gitignore` as necessary.
+- Ensure the compiled application can start successfully.
 
 Do not add application functionality yet.
 
@@ -42,22 +43,23 @@ yarn start
 
 ---
 
-## [ ] 2. Add ESLint and Prettier
+## [X] 2. Add ESLint and Prettier
 
 Establish the project's code-quality tooling before application code grows.
 
 Implement:
 
-* Add ESLint with TypeScript support.
-* Add Prettier.
-* Add appropriate configuration files.
-* Make ESLint and Prettier compatible with each other.
-* Add scripts:
+- Add ESLint with TypeScript support.
+- Add Prettier.
+- Add appropriate configuration files.
+- Make ESLint and Prettier compatible with each other.
+- Add scripts:
 
-  * `yarn lint`
-  * `yarn format`
-  * `yarn format:check`
-* Apply the formatting rules to the existing project.
+  - `yarn lint`
+  - `yarn format`
+  - `yarn format:check`
+
+- Apply the formatting rules to the existing project.
 
 Verification:
 
@@ -76,11 +78,11 @@ Set up the project's automated test infrastructure.
 
 Implement:
 
-* Add Jest with TypeScript support.
-* Add Jest configuration.
-* Establish a clear location/naming convention for tests.
-* Add the `yarn test` script.
-* Add one minimal test proving that the setup works.
+- Add Jest with TypeScript support.
+- Add Jest configuration.
+- Establish a clear location/naming convention for tests.
+- Add the `yarn test` script.
+- Add one minimal test proving that the setup works.
 
 Do not add Prisjakt functionality yet.
 
@@ -107,33 +109,33 @@ products:
   - https://www.prisjakt.nu/produkt.php?p=13438192
 
 schedule:
-  cron: "0 7,19 * * *"
-  timezone: "Europe/Stockholm"
+  cron: '0 7,19 * * *'
+  timezone: 'Europe/Stockholm'
 
 notifications:
   email:
     enabled: true
     recipients:
-      - "example@example.com"
-    from: "example@example.com"
+      - 'example@example.com'
+    from: 'example@example.com'
     smtp:
-      host: "smtp.example.com"
+      host: 'smtp.example.com'
       port: 587
       secure: false
-      usernameEnv: "SMTP_USERNAME"
-      passwordEnv: "SMTP_PASSWORD"
+      usernameEnv: 'SMTP_USERNAME'
+      passwordEnv: 'SMTP_PASSWORD'
       timeoutSeconds: 30
 ```
 
 Implement:
 
-* Add YAML parsing.
-* Define strongly typed configuration structures.
-* Load configuration from a predictable path.
-* Support an explicit config path where useful for local development/testing.
-* Add `config.example.yaml`.
-* Ensure `config.yaml` remains ignored by Git.
-* Add tests for successful configuration loading.
+- Add YAML parsing.
+- Define strongly typed configuration structures.
+- Load configuration from a predictable path.
+- Support an explicit config path where useful for local development/testing.
+- Add `config.example.yaml`.
+- Ensure `config.yaml` remains ignored by Git.
+- Add tests for successful configuration loading.
 
 Do not resolve SMTP secrets yet.
 
@@ -145,16 +147,16 @@ Add startup validation for the YAML configuration.
 
 Validate at minimum:
 
-* At least one product is configured.
-* Every product is a valid Prisjakt product URL.
-* Duplicate product URLs are rejected.
-* Schedule configuration is present and valid.
-* Email recipients are present when email is enabled.
-* Sender is present when email is enabled.
-* SMTP host and port are valid when email is enabled.
-* SMTP username/password environment variable names are configured when email is enabled.
-* Cron configuration is valid.
-* Timezone configuration is valid.
+- At least one product is configured.
+- Every product is a valid Prisjakt product URL.
+- Duplicate product URLs are rejected.
+- Schedule configuration is present and valid.
+- Email recipients are present when email is enabled.
+- Sender is present when email is enabled.
+- SMTP host and port are valid when email is enabled.
+- SMTP username/password environment variable names are configured when email is enabled.
+- Cron configuration is valid.
+- Timezone configuration is valid.
 
 Startup must fail with a useful error message when configuration is invalid.
 
@@ -169,8 +171,8 @@ Implement SMTP secret resolution.
 Given:
 
 ```yaml
-usernameEnv: "SMTP_USERNAME"
-passwordEnv: "SMTP_PASSWORD"
+usernameEnv: 'SMTP_USERNAME'
+passwordEnv: 'SMTP_PASSWORD'
 ```
 
 the application should resolve:
@@ -184,10 +186,10 @@ from the process environment.
 
 Implement:
 
-* Resolve configured secret environment variables.
-* Fail clearly at startup when required secrets are missing and email is enabled.
-* Do not log secret values.
-* Add tests for successful and failed secret resolution.
+- Resolve configured secret environment variables.
+- Fail clearly at startup when required secrets are missing and email is enabled.
+- Do not log secret values.
+- Add tests for successful and failed secret resolution.
 
 ---
 
@@ -197,13 +199,13 @@ Implement the smallest possible HTTP client for configured product pages.
 
 Implement:
 
-* Use the built-in Node.js `fetch`.
-* Fetch a configured Prisjakt product URL.
-* Handle non-success HTTP responses.
-* Use a sensible request timeout.
-* Return the fetched HTML.
-* Provide enough error context to identify the product URL.
-* Do not parse the page in this task.
+- Use the built-in Node.js `fetch`.
+- Fetch a configured Prisjakt product URL.
+- Handle non-success HTTP responses.
+- Use a sensible request timeout.
+- Return the fetched HTML.
+- Provide enough error context to identify the product URL.
+- Do not parse the page in this task.
 
 Add unit tests by mocking HTTP behavior where practical.
 
@@ -217,22 +219,22 @@ Before implementing parsing, inspect actual Prisjakt product page HTML.
 
 Implement:
 
-* Review the existing real Prisjakt fixture under `tests/fixtures/`.
-* Fetch additional representative product pages only if the existing fixture is insufficient.
-* Inspect how the product title is represented.
-* Inspect how store offers are represented.
-* Inspect how prices are represented.
-* Identify any embedded structured data that is more stable than presentation markup.
-* Keep representative HTML fixture(s) under the test fixtures directory.
-* Remove irrelevant bulk content from fixtures only when doing so does not alter the structures being tested.
+- Review the existing real Prisjakt fixture under `tests/fixtures/`.
+- Fetch additional representative product pages only if the existing fixture is insufficient.
+- Inspect how the product title is represented.
+- Inspect how store offers are represented.
+- Inspect how prices are represented.
+- Identify any embedded structured data that is more stable than presentation markup.
+- Keep representative HTML fixture(s) under the test fixtures directory.
+- Remove irrelevant bulk content from fixtures only when doing so does not alter the structures being tested.
 
 Fixtures should represent the real page structures that the parser depends on.
 
 Do not design speculative fields beyond:
 
-* Product title.
-* Store.
-* Price.
+- Product title.
+- Store.
+- Price.
 
 ---
 
@@ -242,12 +244,12 @@ Implement title parsing using Cheerio.
 
 Implement:
 
-* Add Cheerio.
-* Accept HTML as parser input.
-* Extract the Prisjakt product title.
-* Normalize whitespace.
-* Return a clear error if the title cannot be found.
-* Do not perform HTTP requests inside the parser.
+- Add Cheerio.
+- Accept HTML as parser input.
+- Extract the Prisjakt product title.
+- Normalize whitespace.
+- Return a clear error if the title cannot be found.
+- Do not perform HTTP requests inside the parser.
 
 Add fixture-based tests.
 
@@ -266,12 +268,12 @@ price
 
 Implement:
 
-* Extract every valid store offer from the product page.
-* Preserve the store name.
-* Parse the displayed price.
-* Ignore entries that are not actual store offers.
-* Do not reduce the result to the cheapest offer.
-* Return all parsed offers.
+- Extract every valid store offer from the product page.
+- Preserve the store name.
+- Parse the displayed price.
+- Ignore entries that are not actual store offers.
+- Do not reduce the result to the cheapest offer.
+- Return all parsed offers.
 
 Add fixture-based tests verifying multiple stores.
 
@@ -289,10 +291,10 @@ Use an integer representation, preferably Swedish öre:
 
 Implement:
 
-* Parse Prisjakt price formats reliably.
-* Handle Swedish thousands/decimal formatting where present.
-* Reject malformed prices instead of silently converting them.
-* Add focused tests for price parsing and normalization.
+- Parse Prisjakt price formats reliably.
+- Handle Swedish thousands/decimal formatting where present.
+- Reject malformed prices instead of silently converting them.
+- Add focused tests for price parsing and normalization.
 
 No floating-point monetary values should be stored in the database.
 
@@ -318,10 +320,10 @@ Example:
 
 Implement:
 
-* Appropriate TypeScript types.
-* Keep the parser independent from database code.
-* Keep HTTP fetching independent from parsing.
-* Ensure parsing tests cover the complete parsed representation.
+- Appropriate TypeScript types.
+- Keep the parser independent from database code.
+- Keep HTTP fetching independent from parsing.
+- Ensure parsing tests cover the complete parsed representation.
 
 Do not add generic provider abstractions.
 
@@ -333,17 +335,17 @@ Introduce SQLite persistence.
 
 Implement:
 
-* Add a lightweight SQLite library.
-* Open/create the database on application startup.
-* Make the database path configurable internally with the production default:
+- Add a lightweight SQLite library.
+- Open/create the database on application startup.
+- Make the database path configurable internally with the production default:
 
 ```text
 /opt/pc-price-tracker/data/pc-price-tracker.db
 ```
 
-* Allow tests to use isolated temporary/in-memory databases.
-* Add deterministic schema initialization.
-* Ensure database resources are closed correctly.
+- Allow tests to use isolated temporary/in-memory databases.
+- Add deterministic schema initialization.
+- Ensure database resources are closed correctly.
 
 Do not introduce an ORM.
 
@@ -365,10 +367,10 @@ updated_at
 
 Requirements:
 
-* Product URL is unique.
-* A product can be created from a configured URL.
-* Its scraped title can be updated.
-* Repeated scans must reuse the existing product row.
+- Product URL is unique.
+- A product can be created from a configured URL.
+- Its scraped title can be updated.
+- Repeated scans must reuse the existing product row.
 
 Add repository/database tests.
 
@@ -390,10 +392,10 @@ observed_at
 
 Implement:
 
-* Insert observations.
-* Query the most recent observation for a product/store pair.
-* Query historical observations where useful for tests.
-* Preserve every successful observation rather than updating existing history.
+- Insert observations.
+- Query the most recent observation for a product/store pair.
+- Query historical observations where useful for tests.
+- Preserve every successful observation rather than updating existing history.
 
 Add repository/database tests.
 
@@ -475,9 +477,9 @@ Implement behavior for stores that appear after earlier product scans.
 
 A previously unseen product/store combination must:
 
-* Be persisted.
-* Establish its initial baseline.
-* Not produce a price decrease.
+- Be persisted.
+- Establish its initial baseline.
+- Not produce a price decrease.
 
 Add a regression test covering this scenario.
 
@@ -499,9 +501,9 @@ A scan must:
 
 The scan result should distinguish:
 
-* Successful products.
-* Failed products.
-* Detected price decreases.
+- Successful products.
+- Failed products.
+- Detected price decreases.
 
 Do not send email inside individual product processing.
 
@@ -523,11 +525,11 @@ Product C must still execute.
 
 Implement:
 
-* Catch failures at the individual product boundary.
-* Log the failing URL and error.
-* Continue processing remaining products.
-* Include failure information in the aggregate scan result.
-* Never persist a synthetic zero price for a failed scrape.
+- Catch failures at the individual product boundary.
+- Log the failing URL and error.
+- Continue processing remaining products.
+- Include failure information in the aggregate scan result.
+- Never persist a synthetic zero price for a failed scrape.
 
 Add tests covering partial scan failure.
 
@@ -539,21 +541,21 @@ Add simple useful application logging.
 
 Log at minimum:
 
-* Scan started.
-* Number of configured products.
-* Product URL being processed.
-* Product title when available.
-* Number of offers parsed.
-* Number of decreases detected.
-* Individual product failures.
-* Email skipped/sent/failed.
-* Scan completed.
+- Scan started.
+- Number of configured products.
+- Product URL being processed.
+- Product title when available.
+- Number of offers parsed.
+- Number of decreases detected.
+- Individual product failures.
+- Email skipped/sent/failed.
+- Scan completed.
 
 Requirements:
 
-* Do not log HTML bodies.
-* Do not log SMTP credentials.
-* Avoid introducing a large logging framework unless necessary.
+- Do not log HTML bodies.
+- Do not log SMTP credentials.
+- Avoid introducing a large logging framework unless necessary.
 
 ---
 
@@ -576,10 +578,10 @@ text body
 
 Each decrease must include:
 
-* Product title.
-* Store.
-* New price.
-* Price decrease.
+- Product title.
+- Store.
+- New price.
+- Price decrease.
 
 The email should represent all decreases from the completed scan.
 
@@ -595,18 +597,19 @@ Implement email sending using Nodemailer.
 
 Implement:
 
-* Create the SMTP transport from resolved configuration.
-* Support configured:
+- Create the SMTP transport from resolved configuration.
+- Support configured:
 
-  * Host.
-  * Port.
-  * Secure mode.
-  * Username.
-  * Password.
-  * Timeout.
-* Use configured sender and recipients.
-* Send generated subject/body.
-* Surface delivery failures clearly.
+  - Host.
+  - Port.
+  - Secure mode.
+  - Username.
+  - Password.
+  - Timeout.
+
+- Use configured sender and recipients.
+- Send generated subject/body.
+- Surface delivery failures clearly.
 
 Do not implement custom SMTP handling.
 
@@ -632,9 +635,9 @@ The email must contain every decrease collected during that scan.
 
 Ensure:
 
-* No email is sent while the scan is still processing products.
-* No individual product produces its own email.
-* Partial product failures do not prevent decreases from successful products from being emailed.
+- No email is sent while the scan is still processing products.
+- No individual product produces its own email.
+- Partial product failures do not prevent decreases from successful products from being emailed.
 
 Add orchestration tests.
 
@@ -646,12 +649,12 @@ Create minimal persistence for successfully sent notifications.
 
 Persist enough information to know:
 
-* When the notification was sent.
-* Which price decreases were included.
-* Product.
-* Store.
-* Previous price.
-* New price.
+- When the notification was sent.
+- Which price decreases were included.
+- Product.
+- Store.
+- Previous price.
+- New price.
 
 Suggested model:
 
@@ -676,9 +679,9 @@ Required behavior:
 2. SMTP delivery is attempted.
 3. If delivery fails:
 
-   * Log the failure.
-   * Do not record the notification as successfully sent.
-   * Do not roll back valid price observations.
+   - Log the failure.
+   - Do not record the notification as successfully sent.
+   - Do not roll back valid price observations.
 
 Add a regression test.
 
@@ -692,10 +695,10 @@ Provide a simple way to execute a scan immediately.
 
 This should be useful for:
 
-* Local development.
-* Docker testing.
-* Troubleshooting.
-* CI/integration verification.
+- Local development.
+- Docker testing.
+- Troubleshooting.
+- CI/integration verification.
 
 Example behavior may be exposed through a command such as:
 
@@ -717,17 +720,17 @@ Use:
 
 ```yaml
 schedule:
-  cron: "0 7,19 * * *"
-  timezone: "Europe/Stockholm"
+  cron: '0 7,19 * * *'
+  timezone: 'Europe/Stockholm'
 ```
 
 Requirements:
 
-* Read schedule from configuration.
-* Respect configured timezone.
-* Execute complete scans at scheduled times.
-* Keep the process alive between executions.
-* Log scheduled scan starts.
+- Read schedule from configuration.
+- Respect configured timezone.
+- Execute complete scans at scheduled times.
+- Keep the process alive between executions.
+- Log scheduled scan starts.
 
 Use a small established cron library rather than implementing cron parsing manually.
 
@@ -739,8 +742,8 @@ Ensure only one scan can run at a time within the application instance.
 
 If a scheduled execution occurs while another scan is still active:
 
-* Do not start another scan.
-* Log that the execution was skipped because a scan is already running.
+- Do not start another scan.
+- Log that the execution was skipped because a scan is already running.
 
 Add tests around the locking/guard behavior.
 
@@ -780,9 +783,9 @@ SIGINT
 
 On shutdown:
 
-* Stop accepting new scheduled executions.
-* Close database resources.
-* Exit cleanly.
+- Stop accepting new scheduled executions.
+- Close database resources.
+- Exit cleanly.
 
 This is especially important for Docker deployments.
 
@@ -796,14 +799,14 @@ Implement a production-oriented multi-stage Dockerfile.
 
 Requirements:
 
-* Use a maintained Node.js LTS image.
-* Use Yarn.
-* Install dependencies from `yarn.lock`.
-* Build TypeScript during image creation.
-* Include only what is needed at runtime.
-* Run compiled JavaScript.
-* Run as a non-root user.
-* Use:
+- Use a maintained Node.js LTS image.
+- Use Yarn.
+- Install dependencies from `yarn.lock`.
+- Build TypeScript during image creation.
+- Include only what is needed at runtime.
+- Run compiled JavaScript.
+- Run as a non-root user.
+- Use:
 
 ```text
 /opt/pc-price-tracker
@@ -873,13 +876,13 @@ Create or document a complete deployment example matching the intended infrastru
 
 It must demonstrate:
 
-* Docker image.
-* Restart policy.
-* `env_file`.
-* Inline Docker Compose config.
-* Config mount.
-* Persistent data volume.
-* Existing external network.
+- Docker image.
+- Restart policy.
+- `env_file`.
+- Inline Docker Compose config.
+- Config mount.
+- Persistent data volume.
+- Existing external network.
 
 Verify that the service can:
 
@@ -910,10 +913,10 @@ yarn build
 
 Requirements:
 
-* Use the repository's supported Node.js version.
-* Cache Yarn dependencies where appropriate.
-* Fail CI on any validation failure.
-* Follow established conventions from the other repositories where useful.
+- Use the repository's supported Node.js version.
+- Cache Yarn dependencies where appropriate.
+- Fail CI on any validation failure.
+- Follow established conventions from the other repositories where useful.
 
 ---
 
@@ -923,8 +926,8 @@ Ensure pull requests verify that the production Docker image still builds.
 
 Add a CI job that:
 
-* Builds the Docker image.
-* Does not publish it for ordinary pull requests.
+- Builds the Docker image.
+- Does not publish it for ordinary pull requests.
 
 This catches Docker/runtime issues separately from the TypeScript build.
 
@@ -938,11 +941,11 @@ Follow the repository/infrastructure conventions for the target registry.
 
 Implement:
 
-* Authenticate to the configured registry.
-* Build the production Docker image.
-* Tag it appropriately.
-* Push the image.
-* Publish `latest` according to the chosen branch/release strategy.
+- Authenticate to the configured registry.
+- Build the production Docker image.
+- Tag it appropriately.
+- Push the image.
+- Publish `latest` according to the chosen branch/release strategy.
 
 Secrets must come from GitHub Actions secrets/configuration.
 
@@ -1029,15 +1032,15 @@ Before considering version 1 complete, review the implementation for unnecessary
 
 Ensure:
 
-* No unused provider abstraction exists.
-* No product discovery code exists.
-* No search-page scraper exists.
-* No ORM was introduced without necessity.
-* No unnecessary API/server exists.
-* No generic job queue exists.
-* No speculative domain model exists.
-* HTTP fetching, parsing, persistence, scanning, and email responsibilities remain understandable.
-* Directory structure remains shallow.
+- No unused provider abstraction exists.
+- No product discovery code exists.
+- No search-page scraper exists.
+- No ORM was introduced without necessity.
+- No unnecessary API/server exists.
+- No generic job queue exists.
+- No speculative domain model exists.
+- HTTP fetching, parsing, persistence, scanning, and email responsibilities remain understandable.
+- Directory structure remains shallow.
 
 Refactor only where this materially improves the implementation.
 
@@ -1049,19 +1052,19 @@ Expand `README.md` for actual project use.
 
 Document:
 
-* What PC Price Tracker does.
-* Requirements.
-* Yarn setup.
-* Local installation.
-* Configuration.
-* Environment variables.
-* Manual scan execution.
-* Scheduled execution.
-* Tests.
-* Build.
-* Docker build/run.
-* Docker Compose deployment.
-* Persistent data location.
+- What PC Price Tracker does.
+- Requirements.
+- Yarn setup.
+- Local installation.
+- Configuration.
+- Environment variables.
+- Manual scan execution.
+- Scheduled execution.
+- Tests.
+- Build.
+- Docker build/run.
+- Docker Compose deployment.
+- Persistent data location.
 
 Link to:
 
@@ -1092,12 +1095,12 @@ Also perform a real manual scan against at least one configured Prisjakt product
 
 Confirm:
 
-* Title is parsed correctly.
-* Multiple stores are parsed.
-* Prices are correct.
-* Database rows are persisted.
-* Repeated scans create history.
-* Price-change detection behaves correctly.
+- Title is parsed correctly.
+- Multiple stores are parsed.
+- Prices are correct.
+- Database rows are persisted.
+- Repeated scans create history.
+- Price-change detection behaves correctly.
 
 ---
 
@@ -1137,10 +1140,10 @@ Several decreases across several products
 
 Confirm each entry contains:
 
-* Product title.
-* Store.
-* New price.
-* Price decrease.
+- Product title.
+- Store.
+- New price.
+- Price decrease.
 
 Confirm no duplicate per-product emails are generated.
 
@@ -1152,15 +1155,15 @@ Complete repository-level verification.
 
 Confirm:
 
-* Pull-request CI passes.
-* Lint passes.
-* Formatting passes.
-* Type checking passes.
-* Tests pass.
-* Build passes.
-* Docker build passes.
-* Production image publishing workflow succeeds.
-* Published image can be pulled by the target infrastructure.
+- Pull-request CI passes.
+- Lint passes.
+- Formatting passes.
+- Type checking passes.
+- Tests pass.
+- Build passes.
+- Docker build passes.
+- Production image publishing workflow succeeds.
+- Published image can be pulled by the target infrastructure.
 
 ---
 

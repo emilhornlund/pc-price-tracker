@@ -19,9 +19,10 @@ The application must:
 3. Scrape individual Prisjakt product pages.
 4. Extract:
 
-   * Product title.
-   * Store.
-   * Price.
+   - Product title.
+   - Store.
+   - Price.
+
 5. Persist price observations in a database.
 6. Run automatically a few times per day.
 7. Detect price decreases between scans.
@@ -39,19 +40,19 @@ The application must:
 
 The initial implementation should **not** include:
 
-* Prisjakt search result scraping.
-* Automatic product discovery.
-* Category searches.
-* Product recommendation functionality.
-* A web UI.
-* User accounts.
-* Multiple scraper/provider abstractions.
-* Complex job queues.
-* Distributed processing.
-* External scheduling infrastructure.
-* Price prediction.
-* Favorite-store functionality.
-* REST APIs unless a concrete need appears later.
+- Prisjakt search result scraping.
+- Automatic product discovery.
+- Category searches.
+- Product recommendation functionality.
+- A web UI.
+- User accounts.
+- Multiple scraper/provider abstractions.
+- Complex job queues.
+- Distributed processing.
+- External scheduling infrastructure.
+- Price prediction.
+- Favorite-store functionality.
+- REST APIs unless a concrete need appears later.
 
 The first version should solve one problem well:
 
@@ -90,8 +91,9 @@ For every configured product URL, the application should:
 3. Parse the currently available store offers.
 4. Extract for each offer:
 
-   * Store name.
-   * Price.
+   - Store name.
+   - Price.
+
 5. Normalize the price into an integer number of Swedish öre or another precise integer representation.
 6. Persist the resulting observations.
 
@@ -113,10 +115,10 @@ The system must **not** reduce a product to only its lowest price when storing d
 
 This is important because historical data should later support questions such as:
 
-* How has the price changed at Inet?
-* Which stores usually have the best price?
-* Which stores should be preferred?
-* What was the lowest price during a particular period?
+- How has the price changed at Inet?
+- Which stores usually have the best price?
+- Which stores should be preferred?
+- What was the lowest price during a particular period?
 
 ---
 
@@ -178,10 +180,10 @@ Every successful price observation should be persisted.
 
 A price observation belongs to:
 
-* One product.
-* One store.
-* One scan/time.
-* One price.
+- One product.
+- One store.
+- One scan/time.
+- One price.
 
 Conceptually:
 
@@ -253,8 +255,8 @@ The first observation establishes the baseline.
 
 It must therefore:
 
-* Be persisted.
-* Not trigger a price-decrease notification.
+- Be persisted.
+- Not trigger a price-decrease notification.
 
 ---
 
@@ -307,9 +309,9 @@ Decrease: 150 SEK
 
 Each notification entry must contain at minimum:
 
-* Product title.
-* New price.
-* Price decrease.
+- Product title.
+- New price.
+- Price decrease.
 
 Because price tracking is store-specific, the email should also include the store name.
 
@@ -369,13 +371,13 @@ The initial application should use **SQLite**.
 
 Reasons:
 
-* Single application instance.
-* Very small data volume.
-* No database server to maintain.
-* Easy Docker persistence.
-* Supports historical price queries.
-* Easy backup.
-* Can be replaced later if necessary.
+- Single application instance.
+- Very small data volume.
+- No database server to maintain.
+- Easy Docker persistence.
+- Supports historical price queries.
+- Easy backup.
+- Can be replaced later if necessary.
 
 Suggested database location:
 
@@ -465,8 +467,8 @@ Example:
 
 ```yaml
 schedule:
-  cron: "0 7,19 * * *"
-  timezone: "Europe/Stockholm"
+  cron: '0 7,19 * * *'
+  timezone: 'Europe/Stockholm'
 ```
 
 This example scans twice per day:
@@ -496,22 +498,22 @@ products:
   - https://www.prisjakt.nu/produkt.php?p=12345678
 
 schedule:
-  cron: "0 7,19 * * *"
-  timezone: "Europe/Stockholm"
+  cron: '0 7,19 * * *'
+  timezone: 'Europe/Stockholm'
 
 notifications:
   email:
     enabled: true
     recipients:
-      - "emil.hornlund@me.com"
-    from: "emil.hornlund@me.com"
+      - 'emil.hornlund@me.com'
+    from: 'emil.hornlund@me.com'
 
     smtp:
-      host: "smtp.mail.me.com"
+      host: 'smtp.mail.me.com'
       port: 587
       secure: false
-      usernameEnv: "SMTP_USERNAME"
-      passwordEnv: "SMTP_PASSWORD"
+      usernameEnv: 'SMTP_USERNAME'
+      passwordEnv: 'SMTP_PASSWORD'
       timeoutSeconds: 30
 ```
 
@@ -521,12 +523,12 @@ Invalid configuration should cause the application to fail immediately with a us
 
 Examples:
 
-* No products configured.
-* Invalid product URL.
-* Duplicate product URL.
-* Email enabled but no recipient configured.
-* Missing SMTP configuration.
-* Invalid cron expression.
+- No products configured.
+- Invalid product URL.
+- Duplicate product URL.
+- Email enabled but no recipient configured.
+- Missing SMTP configuration.
+- Invalid cron expression.
 
 ---
 
@@ -537,8 +539,8 @@ Secrets must **not** be stored directly in `config.yaml`.
 The YAML file should instead reference environment variable names:
 
 ```yaml
-usernameEnv: "SMTP_USERNAME"
-passwordEnv: "SMTP_PASSWORD"
+usernameEnv: 'SMTP_USERNAME'
+passwordEnv: 'SMTP_PASSWORD'
 ```
 
 The application resolves these environment variables at startup.
@@ -567,12 +569,12 @@ Suggested application paths:
 
 The Docker image should:
 
-* Use a maintained Node.js LTS runtime.
-* Build TypeScript during image creation.
-* Run compiled JavaScript in production.
-* Contain only production dependencies in the final image where practical.
-* Run as a non-root user.
-* Persist the SQLite database outside the container filesystem.
+- Use a maintained Node.js LTS runtime.
+- Build TypeScript during image creation.
+- Run compiled JavaScript in production.
+- Contain only production dependencies in the final image where practical.
+- Run as a non-root user.
+- Persist the SQLite database outside the container filesystem.
 
 ---
 
@@ -646,12 +648,12 @@ The project should use the following technologies and tooling.
 
 ## Application
 
-* Node.js
-* TypeScript
+- Node.js
+- TypeScript
 
 ## Package Management
 
-* Yarn
+- Yarn
 
 Yarn is the required package manager for local development, dependency installation, tests, builds, GitHub Actions, and Docker image builds.
 
@@ -661,8 +663,8 @@ Do not use npm commands or generate `package-lock.json`.
 
 ## HTTP and HTML Parsing
 
-* Node.js built-in `fetch`
-* Cheerio
+- Node.js built-in `fetch`
+- Cheerio
 
 Use the built-in `fetch` API for retrieving Prisjakt product pages.
 
@@ -672,7 +674,7 @@ Do not introduce another HTTP client unless a concrete requirement justifies it.
 
 ## Configuration
 
-* YAML
+- YAML
 
 Use a small YAML library for reading `config.yaml`.
 
@@ -680,7 +682,7 @@ Configuration must be mapped into strongly typed TypeScript structures and valid
 
 ## Database
 
-* SQLite
+- SQLite
 
 Use a lightweight SQLite library.
 
@@ -688,7 +690,7 @@ Do not introduce an ORM unless later requirements justify one.
 
 ## Email
 
-* Nodemailer
+- Nodemailer
 
 Use Nodemailer for SMTP email delivery.
 
@@ -702,17 +704,17 @@ Do not implement cron parsing manually.
 
 ## Testing
 
-* Jest
+- Jest
 
 Tests should primarily cover:
 
-* Prisjakt HTML parsing.
-* Price normalization.
-* Price change detection.
-* Configuration parsing and validation.
-* Email content generation.
-* Database persistence.
-* Scan orchestration.
+- Prisjakt HTML parsing.
+- Price normalization.
+- Price change detection.
+- Configuration parsing and validation.
+- Email content generation.
+- Database persistence.
+- Scan orchestration.
 
 Real Prisjakt requests should not normally be required for automated tests.
 
@@ -720,9 +722,9 @@ Representative HTML fixtures should be stored under `tests/fixtures/`.
 
 ## Code Quality
 
-* ESLint
-* Prettier
-* TypeScript compiler
+- ESLint
+- Prettier
+- TypeScript compiler
 
 The repository should expose predictable Yarn commands such as:
 
@@ -734,9 +736,9 @@ The repository should expose predictable Yarn commands such as:
 
 ## Deployment and CI
 
-* Docker
-* Docker Compose
-* GitHub Actions
+- Docker
+- Docker Compose
+- GitHub Actions
 
 Docker must be used for production deployment.
 
@@ -805,9 +807,9 @@ Price observations should be persisted before notification is attempted.
 
 If SMTP delivery fails:
 
-* The scan results must remain stored.
-* The failure must be logged.
-* The application must not falsely record the email as successfully sent.
+- The scan results must remain stored.
+- The failure must be logged.
+- The application must not falsely record the email as successfully sent.
 
 The implementation should maintain enough notification state that notification behaviour can later be made retry-safe without redesigning price history.
 
@@ -1000,12 +1002,12 @@ instead of building abstractions that are not currently needed.
 
 Future functionality such as:
 
-* Favorite stores.
-* Historical charts.
-* Price thresholds.
-* More retailers.
-* Web UI.
-* Multiple notification mechanisms.
+- Favorite stores.
+- Historical charts.
+- Price thresholds.
+- More retailers.
+- Web UI.
+- Multiple notification mechanisms.
 
 can be built using the stored historical data without complicating version 1.
 
@@ -1015,22 +1017,22 @@ can be built using the stored historical data without complicating version 1.
 
 Version 1 is complete when the application can:
 
-* Read configured Prisjakt URLs from YAML.
-* Read SMTP configuration from the same YAML.
-* Scrape each individual product page.
-* Discover the product title.
-* Discover store-specific prices.
-* Persist historical store prices in SQLite.
-* Run several times per day automatically.
-* Compare current prices with the previous scan.
-* Detect store-specific price decreases.
-* Finish the complete scan before notifying.
-* Send one email containing every decrease detected in the scan.
-* Run entirely in Docker.
-* Persist its database through a Docker volume.
-* Accept its YAML configuration through Docker Compose `configs`.
-* Keep credentials in environment variables.
-* Pass linting, formatting, type checking, tests, and build in GitHub Actions.
-* Build and publish its Docker image automatically.
+- Read configured Prisjakt URLs from YAML.
+- Read SMTP configuration from the same YAML.
+- Scrape each individual product page.
+- Discover the product title.
+- Discover store-specific prices.
+- Persist historical store prices in SQLite.
+- Run several times per day automatically.
+- Compare current prices with the previous scan.
+- Detect store-specific price decreases.
+- Finish the complete scan before notifying.
+- Send one email containing every decrease detected in the scan.
+- Run entirely in Docker.
+- Persist its database through a Docker volume.
+- Accept its YAML configuration through Docker Compose `configs`.
+- Keep credentials in environment variables.
+- Pass linting, formatting, type checking, tests, and build in GitHub Actions.
+- Build and publish its Docker image automatically.
 
 Anything beyond this belongs to a later version unless implementation experience proves that it is required for correctness.
