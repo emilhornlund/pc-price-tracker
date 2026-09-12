@@ -41,6 +41,19 @@ export function initializeDatabase(database: TrackerDatabase): void {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS price_observations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      product_id INTEGER NOT NULL,
+      store_id TEXT NOT NULL,
+      price INTEGER NOT NULL,
+      observed_at TEXT NOT NULL,
+      FOREIGN KEY (product_id) REFERENCES products (id),
+      FOREIGN KEY (store_id) REFERENCES stores (id)
+    );
+
+    CREATE INDEX IF NOT EXISTS price_observations_product_store_time
+      ON price_observations (product_id, store_id, observed_at DESC, id DESC);
   `);
 }
 

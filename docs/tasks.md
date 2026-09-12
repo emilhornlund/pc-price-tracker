@@ -402,7 +402,7 @@ Add repository/database tests.
 
 ---
 
-## [ ] 16. Create the price observations table
+## [X] 16. Create the price observations table
 
 Implement historical store-specific price persistence.
 
