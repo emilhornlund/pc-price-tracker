@@ -911,7 +911,7 @@ Confirm that recreating the container does not remove price history.
 
 ---
 
-## [ ] 37. Verify Docker Compose deployment
+## [X] 37. Verify Docker Compose deployment
 
 Create or document a complete deployment example matching the intended infrastructure repository usage.
 

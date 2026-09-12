@@ -1,12 +1,21 @@
 services:
   pc-price-tracker:
-    image: pc-price-tracker:latest
+    image: emils-nuc-server:5000/pc-price-tracker:latest
+    container_name: pc-price-tracker
     restart: unless-stopped
+
+    env_file:
+      - ./stack.env
+
     configs:
       - source: pc-price-tracker-config
         target: /opt/pc-price-tracker/config.yaml
+
     volumes:
       - pc-price-tracker-data:/opt/pc-price-tracker/data
+
+    networks:
+      - core-network
 
 configs:
   pc-price-tracker-config:
@@ -20,7 +29,21 @@ configs:
 
       notifications:
         email:
-          enabled: false
+          enabled: true
+          recipients:
+            - "emil.hornlund@me.com"
+          from: "emil.hornlund@me.com"
+          smtp:
+            host: "smtp.mail.me.com"
+            port: 587
+            secure: false
+            usernameEnv: "SMTP_USERNAME"
+            passwordEnv: "SMTP_PASSWORD"
+            timeoutSeconds: 30
 
 volumes:
   pc-price-tracker-data:
+
+networks:
+  core-network:
+    external: true
