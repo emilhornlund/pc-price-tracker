@@ -193,7 +193,7 @@ Implement:
 
 ---
 
-## [ ] 7. Fetch an individual Prisjakt product page
+## [X] 7. Fetch an individual Prisjakt product page
 
 Implement the smallest possible HTTP client for configured product pages.
 
