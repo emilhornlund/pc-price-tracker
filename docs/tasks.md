@@ -224,6 +224,7 @@ Implement:
 - Inspect how the product title is represented.
 - Inspect how store offers are represented.
 - Inspect how prices are represented.
+- Inspect whether each store offer exposes a stable Prisjakt store identifier that can be persisted independently of the store name.
 - Identify any embedded structured data that is more stable than presentation markup.
 - Keep representative HTML fixture(s) under the test fixtures directory.
 - Remove irrelevant bulk content from fixtures only when doing so does not alter the structures being tested.
@@ -376,7 +377,32 @@ Add repository/database tests.
 
 ---
 
-## [ ] 15. Create the price observations table
+## [ ] 15. Create the stores table
+
+Implement persistence for stores discovered from Prisjakt offers.
+
+The table should contain at minimum:
+
+```text
+id
+name
+created_at
+updated_at
+```
+
+Requirements:
+
+- `id` is the unique primary key for each store.
+- Store names are not required to be unique.
+- Do not add a unique constraint to `name`.
+- A store can be created from a parsed Prisjakt offer.
+- Keep store persistence independent from product persistence.
+
+Add repository/database tests.
+
+---
+
+## [ ] 16. Create the price observations table
 
 Implement historical store-specific price persistence.
 
@@ -385,15 +411,21 @@ The table should contain at minimum:
 ```text
 id
 product_id
-store
+store_id
 price
 observed_at
 ```
 
+Requirements:
+
+- `product_id` references the tracked product.
+- `store_id` references the store from the `stores` table.
+- Store names must not be duplicated into the price observations table.
+
 Implement:
 
-- Insert observations.
-- Query the most recent observation for a product/store pair.
+- Insert observations using `product_id` and `store_id`.
+- Query the most recent observation for a product/store pair through their ids.
 - Query historical observations where useful for tests.
 - Preserve every successful observation rather than updating existing history.
 
@@ -401,7 +433,7 @@ Add repository/database tests.
 
 ---
 
-## [ ] 16. Persist one scraped product
+## [ ] 17. Persist one scraped product
 
 Connect fetching, parsing, and persistence for a single product.
 
@@ -411,7 +443,15 @@ For one configured URL:
 2. Parse its title and offers.
 3. Find or create the product.
 4. Update its title.
-5. Persist all parsed store prices as observations.
+5. For each parsed offer, find or create the corresponding store.
+6. Persist the price observation using the product id and store id.
+
+Requirements:
+
+- Repeated scans must reuse existing product rows.
+- Do not assume that store names are globally unique when resolving stores.
+- Price observations must reference stores through `store_id`.
+- Do not duplicate the store name into the price observations table.
 
 Add integration-style tests around the orchestration using fixture HTML and an isolated database.
 
@@ -419,9 +459,9 @@ Do not add notifications yet.
 
 ---
 
-## [ ] 17. Implement price decrease detection
+## [ ] 18. Implement price decrease detection
 
-Implement comparison against the previous successful observation for the same product and store.
+Implement comparison against the previous successful observation for the same product and store, resolved through `product_id` and `store_id`.
 
 Rules:
 
@@ -454,7 +494,7 @@ Add focused unit tests for all cases.
 
 ---
 
-## [ ] 18. Ensure observations are compared before insertion
+## [ ] 19. Ensure observations are compared before insertion
 
 Make scan ordering explicit.
 
@@ -471,21 +511,22 @@ Add regression tests for repeated scans.
 
 ---
 
-## [ ] 19. Handle newly appearing stores correctly
+## [ ] 20. Handle newly appearing stores correctly
 
 Implement behavior for stores that appear after earlier product scans.
 
-A previously unseen product/store combination must:
+A previously unseen store must:
 
-- Be persisted.
-- Establish its initial baseline.
+- Be created in the `stores` table if it does not already exist.
+- Be referenced from the new price observation through `store_id`.
+- Establish its initial baseline for that product.
 - Not produce a price decrease.
 
 Add a regression test covering this scenario.
 
 ---
 
-## [ ] 20. Implement full multi-product scans
+## [ ] 21. Implement full multi-product scans
 
 Create the scan orchestration that processes every configured product.
 
@@ -509,7 +550,7 @@ Do not send email inside individual product processing.
 
 ---
 
-## [ ] 21. Make individual product failures non-fatal to the scan
+## [ ] 22. Make individual product failures non-fatal to the scan
 
 One broken product must not abort the entire run.
 
@@ -535,7 +576,7 @@ Add tests covering partial scan failure.
 
 ---
 
-## [ ] 22. Add structured scan logging
+## [ ] 23. Add structured scan logging
 
 Add simple useful application logging.
 
@@ -559,7 +600,7 @@ Requirements:
 
 ---
 
-## [ ] 23. Build email content from price decreases
+## [ ] 24. Build email content from price decreases
 
 Implement pure email content generation.
 
@@ -591,7 +632,7 @@ Do not send email yet.
 
 ---
 
-## [ ] 24. Add SMTP email delivery
+## [ ] 25. Add SMTP email delivery
 
 Implement email sending using Nodemailer.
 
@@ -617,7 +658,7 @@ Add tests by mocking the transport.
 
 ---
 
-## [ ] 25. Send one consolidated notification after a scan
+## [ ] 26. Send one consolidated notification after a scan
 
 Integrate notifications with scan execution.
 
@@ -643,7 +684,7 @@ Add orchestration tests.
 
 ---
 
-## [ ] 26. Add notification persistence
+## [ ] 27. Add notification persistence
 
 Create minimal persistence for successfully sent notifications.
 
@@ -669,7 +710,7 @@ Add database tests.
 
 ---
 
-## [ ] 27. Make notification failure safe
+## [ ] 28. Make notification failure safe
 
 Ensure SMTP failure does not corrupt scan history.
 
@@ -689,7 +730,7 @@ Keep the design simple while preserving enough state for later retry improvement
 
 ---
 
-## [ ] 28. Implement manual scan execution
+## [ ] 29. Implement manual scan execution
 
 Provide a simple way to execute a scan immediately.
 
@@ -712,7 +753,7 @@ Do not add an HTTP API.
 
 ---
 
-## [ ] 29. Add scheduled scan execution
+## [ ] 30. Add scheduled scan execution
 
 Implement the built-in scheduler.
 
@@ -736,7 +777,7 @@ Use a small established cron library rather than implementing cron parsing manua
 
 ---
 
-## [ ] 30. Prevent overlapping scans
+## [ ] 31. Prevent overlapping scans
 
 Ensure only one scan can run at a time within the application instance.
 
@@ -751,7 +792,7 @@ No distributed lock is required for version 1.
 
 ---
 
-## [ ] 31. Complete application startup lifecycle
+## [ ] 32. Complete application startup lifecycle
 
 Wire the application together in `src/main.ts`.
 
@@ -770,7 +811,7 @@ Keep composition in the application entry point rather than hiding dependencies 
 
 ---
 
-## [ ] 32. Add graceful shutdown
+## [ ] 33. Add graceful shutdown
 
 Handle process shutdown cleanly.
 
@@ -791,7 +832,7 @@ This is especially important for Docker deployments.
 
 ---
 
-## [ ] 33. Add Dockerfile
+## [ ] 34. Add Dockerfile
 
 Dockerize the application.
 
@@ -825,7 +866,7 @@ Verify the image builds locally.
 
 ---
 
-## [ ] 34. Add Docker configuration support
+## [ ] 35. Add Docker configuration support
 
 Ensure the container works with a mounted/configured YAML file.
 
@@ -849,7 +890,7 @@ Do not bake private configuration into the Docker image.
 
 ---
 
-## [ ] 35. Add persistent Docker database storage
+## [ ] 36. Add persistent Docker database storage
 
 Ensure SQLite data survives container replacement.
 
@@ -870,7 +911,7 @@ Confirm that recreating the container does not remove price history.
 
 ---
 
-## [ ] 36. Verify Docker Compose deployment
+## [ ] 37. Verify Docker Compose deployment
 
 Create or document a complete deployment example matching the intended infrastructure repository usage.
 
@@ -894,7 +935,7 @@ Verify that the service can:
 
 ---
 
-## [ ] 37. Add GitHub Actions CI workflow
+## [ ] 38. Add GitHub Actions CI workflow
 
 Create pull-request CI.
 
@@ -920,7 +961,7 @@ Requirements:
 
 ---
 
-## [ ] 38. Add Docker build validation to CI
+## [ ] 39. Add Docker build validation to CI
 
 Ensure pull requests verify that the production Docker image still builds.
 
@@ -933,7 +974,7 @@ This catches Docker/runtime issues separately from the TypeScript build.
 
 ---
 
-## [ ] 39. Add Docker image publishing workflow
+## [ ] 40. Add Docker image publishing workflow
 
 Add automated Docker image publishing.
 
@@ -953,7 +994,7 @@ Do not hard-code registry credentials.
 
 ---
 
-## [ ] 40. Expand automated coverage for the complete scan flow
+## [ ] 41. Expand automated coverage for the complete scan flow
 
 Add higher-level tests covering the primary version 1 behavior.
 
@@ -1026,7 +1067,7 @@ Avoid live Prisjakt requests in the automated test suite.
 
 ---
 
-## [ ] 41. Review and simplify project structure
+## [ ] 42. Review and simplify project structure
 
 Before considering version 1 complete, review the implementation for unnecessary complexity.
 
@@ -1040,13 +1081,15 @@ Ensure:
 - No generic job queue exists.
 - No speculative domain model exists.
 - HTTP fetching, parsing, persistence, scanning, and email responsibilities remain understandable.
+- Product, store, and price observation persistence remain normalized and understandable.
+- Price observations reference stores by `store_id` rather than duplicating store names.
 - Directory structure remains shallow.
 
 Refactor only where this materially improves the implementation.
 
 ---
 
-## [ ] 42. Complete README documentation
+## [ ] 43. Complete README documentation
 
 Expand `README.md` for actual project use.
 
@@ -1077,7 +1120,7 @@ Avoid duplicating the complete requirements document in the README.
 
 ---
 
-## [ ] 43. Perform complete local verification
+## [ ] 44. Perform complete local verification
 
 Before version 1 is considered complete, run the complete project validation locally:
 
@@ -1104,7 +1147,7 @@ Confirm:
 
 ---
 
-## [ ] 44. Perform end-to-end Docker verification
+## [ ] 45. Perform end-to-end Docker verification
 
 Run the application using its production Docker deployment model.
 
@@ -1121,7 +1164,7 @@ Verify:
 
 ---
 
-## [ ] 45. Verify consolidated email behavior
+## [ ] 46. Verify consolidated email behavior
 
 Before release, explicitly verify notification behavior using controlled price data or integration fixtures.
 
@@ -1149,7 +1192,7 @@ Confirm no duplicate per-product emails are generated.
 
 ---
 
-## [ ] 46. Verify GitHub Actions and image publishing
+## [ ] 47. Verify GitHub Actions and image publishing
 
 Complete repository-level verification.
 
