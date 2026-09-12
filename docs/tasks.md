@@ -459,7 +459,7 @@ Do not add notifications yet.
 
 ---
 
-## [ ] 18. Implement price decrease detection
+## [X] 18. Implement price decrease detection
 
 Implement comparison against the previous successful observation for the same product and store, resolved through `product_id` and `store_id`.
 
