@@ -832,7 +832,7 @@ This is especially important for Docker deployments.
 
 ---
 
-## [ ] 34. Add Dockerfile
+## [X] 34. Add Dockerfile
 
 Dockerize the application.
 

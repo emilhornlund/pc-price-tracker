@@ -1,0 +1,11 @@
+.git
+.github
+.idea
+.opencode
+config.yaml
+dist
+node_modules
+tests
+*.db
+*.db-shm
+*.db-wal
