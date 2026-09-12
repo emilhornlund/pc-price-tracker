@@ -213,7 +213,7 @@ Also perform a manual local fetch against one real configured Prisjakt product p
 
 ---
 
-## [ ] 8. Review and prepare real Prisjakt HTML fixtures
+## [X] 8. Review and prepare real Prisjakt HTML fixtures
 
 Before implementing parsing, inspect actual Prisjakt product page HTML.
 
