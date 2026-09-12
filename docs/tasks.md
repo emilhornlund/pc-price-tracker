@@ -526,7 +526,7 @@ Add a regression test covering this scenario.
 
 ---
 
-## [ ] 21. Implement full multi-product scans
+## [X] 21. Implement full multi-product scans
 
 Create the scan orchestration that processes every configured product.
 

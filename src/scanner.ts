@@ -31,6 +31,17 @@ export interface PersistedProductScan {
   decreases: PriceDecrease[];
 }
 
+export interface FailedProductScan {
+  productUrl: string;
+  error: Error;
+}
+
+export interface AggregateScanResult {
+  successfulProducts: PersistedProductScan[];
+  failedProducts: FailedProductScan[];
+  decreases: PriceDecrease[];
+}
+
 export async function scanProduct(
   productUrl: string,
   dependencies: ProductScanDependencies,
@@ -72,6 +83,33 @@ export async function scanProduct(
 
 export const persistScrapedProduct = scanProduct;
 
+export async function scanProducts(
+  productUrls: string[],
+  dependencies: ProductScanDependencies,
+): Promise<AggregateScanResult> {
+  const successfulProducts: PersistedProductScan[] = [];
+  const failedProducts: FailedProductScan[] = [];
+  const decreases: PriceDecrease[] = [];
+
+  for (const productUrl of productUrls) {
+    try {
+      const result = await scanProduct(productUrl, dependencies);
+      successfulProducts.push(result);
+      decreases.push(...result.decreases);
+    } catch (error) {
+      failedProducts.push({ productUrl, error: asError(error) });
+    }
+  }
+
+  return { successfulProducts, failedProducts, decreases };
+}
+
+export const scanConfiguredProducts = scanProducts;
+
 function fallbackStoreId(storeName: string): string {
   return `name:${storeName.trim().toLocaleLowerCase('sv-SE')}`;
+}
+
+function asError(error: unknown): Error {
+  return error instanceof Error ? error : new Error(String(error));
 }

@@ -1,5 +1,5 @@
 import { closeDatabase, openDatabase } from '../src/database';
-import { scanProduct } from '../src/scanner';
+import { scanProduct, scanProducts } from '../src/scanner';
 
 describe('scanProduct', () => {
   it('fetches, parses, and persists one product with every offer', async () => {
@@ -165,6 +165,49 @@ describe('scanProduct', () => {
         .prepare('SELECT COUNT(*) AS count FROM price_observations')
         .get(),
     ).toEqual({ count: 3 });
+
+    closeDatabase(database);
+  });
+
+  it('returns one aggregate result after attempting every configured product', async () => {
+    const database = openDatabase(':memory:');
+    const productUrls = [
+      'https://www.prisjakt.nu/produkt.php?p=1',
+      'https://www.prisjakt.nu/produkt.php?p=2',
+      'https://www.prisjakt.nu/produkt.php?p=3',
+    ];
+    const fetchPage = jest.fn(async (url: string) => {
+      if (url.endsWith('p=2')) {
+        throw new Error('temporary upstream failure');
+      }
+      return url;
+    });
+    const parsePage = jest.fn((html: string) => ({
+      title: `Product ${html.at(-1)}`,
+      offers: [
+        {
+          store: 'Example store',
+          storeId: `store-${html.at(-1)}`,
+          price: 149_900,
+        },
+      ],
+    }));
+
+    const result = await scanProducts(productUrls, {
+      database,
+      fetchPage,
+      parsePage,
+    });
+
+    expect(fetchPage).toHaveBeenCalledTimes(3);
+    expect(result.successfulProducts).toHaveLength(2);
+    expect(result.failedProducts).toEqual([
+      {
+        productUrl: productUrls[1],
+        error: new Error('temporary upstream failure'),
+      },
+    ]);
+    expect(result.decreases).toEqual([]);
 
     closeDatabase(database);
   });
