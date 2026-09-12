@@ -494,7 +494,7 @@ Add focused unit tests for all cases.
 
 ---
 
-## [ ] 19. Ensure observations are compared before insertion
+## [X] 19. Ensure observations are compared before insertion
 
 Make scan ordering explicit.
 

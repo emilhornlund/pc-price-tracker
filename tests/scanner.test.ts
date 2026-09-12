@@ -23,6 +23,7 @@ describe('scanProduct', () => {
     expect(fetchPage).toHaveBeenCalledWith(productUrl);
     expect(parsePage).toHaveBeenCalledWith('<html>fixture</html>');
     expect(result.product.title).toBe('Example product');
+    expect(result.decreases).toEqual([]);
     expect(result.offers.map(({ store }) => store.id)).toEqual([
       'store-1',
       'store-2',
@@ -65,6 +66,52 @@ describe('scanProduct', () => {
 
     expect(second.product.id).toBe(first.product.id);
     expect(second.offers[0].store.id).toBe(first.offers[0].store.id);
+    expect(
+      database
+        .prepare('SELECT COUNT(*) AS count FROM price_observations')
+        .get(),
+    ).toEqual({ count: 2 });
+
+    closeDatabase(database);
+  });
+
+  it('compares with the previous observation before inserting the current one', async () => {
+    const database = openDatabase(':memory:');
+    const productUrl = 'https://www.prisjakt.nu/produkt.php?p=1';
+    const parsePage = jest
+      .fn()
+      .mockReturnValueOnce({
+        title: 'Example product',
+        offers: [
+          { store: 'Example store', storeId: 'store-1', price: 159_900 },
+        ],
+      })
+      .mockReturnValueOnce({
+        title: 'Example product',
+        offers: [
+          { store: 'Example store', storeId: 'store-1', price: 149_900 },
+        ],
+      });
+    const dependencies = {
+      database,
+      fetchPage: jest.fn().mockResolvedValue('<html>fixture</html>'),
+      parsePage,
+    };
+
+    const first = await scanProduct(productUrl, dependencies);
+    const second = await scanProduct(productUrl, dependencies);
+
+    expect(first.decreases).toEqual([]);
+    expect(second.decreases).toEqual([
+      {
+        product: 'Example product',
+        store: 'Example store',
+        previousPrice: 159_900,
+        newPrice: 149_900,
+        decrease: 10_000,
+      },
+    ]);
+    expect(second.offers[0].observation.price).toBe(149_900);
     expect(
       database
         .prepare('SELECT COUNT(*) AS count FROM price_observations')

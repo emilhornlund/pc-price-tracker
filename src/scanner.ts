@@ -3,6 +3,7 @@ import {
   parsePrisjaktProduct,
   type PrisjaktProduct,
 } from './prisjakt';
+import { detectPriceDecrease, type PriceDecrease } from './price-changes';
 import type { TrackerDatabase } from './database';
 import {
   PriceObservationRepository,
@@ -20,12 +21,14 @@ export interface ProductScanDependencies {
 export interface PersistedOffer {
   store: StoreRecord;
   observation: PriceObservationRecord;
+  change?: PriceDecrease;
 }
 
 export interface PersistedProductScan {
   product: ProductRecord;
   parsed: PrisjaktProduct;
   offers: PersistedOffer[];
+  decreases: PriceDecrease[];
 }
 
 export async function scanProduct(
@@ -41,15 +44,30 @@ export async function scanProduct(
   const observations = new PriceObservationRepository(dependencies.database);
   const product = products.findOrCreate(productUrl, parsed.title);
   const persistedOffers: PersistedOffer[] = [];
+  const decreases: PriceDecrease[] = [];
 
   for (const offer of parsed.offers) {
     const storeId = offer.storeId ?? fallbackStoreId(offer.store);
     const store = stores.findOrCreate(storeId, offer.store);
+    const previousObservation = observations.findLatest(product.id, store.id);
+    const change = detectPriceDecrease(
+      product.title,
+      store.name,
+      previousObservation?.price,
+      offer.price,
+    );
     const observation = observations.create(product.id, store.id, offer.price);
-    persistedOffers.push({ store, observation });
+    if (change !== undefined) {
+      decreases.push(change);
+    }
+    persistedOffers.push({
+      store,
+      observation,
+      ...(change === undefined ? {} : { change }),
+    });
   }
 
-  return { product, parsed, offers: persistedOffers };
+  return { product, parsed, offers: persistedOffers, decreases };
 }
 
 export const persistScrapedProduct = scanProduct;
