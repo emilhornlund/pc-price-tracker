@@ -8,7 +8,7 @@ The requirements in `docs/requirements.md` are authoritative.
 
 ---
 
-## [ ] 1. Set up the TypeScript project
+## [X] 1. Set up the TypeScript project
 
 Initialize the project as a Yarn-based Node.js and TypeScript application.
 

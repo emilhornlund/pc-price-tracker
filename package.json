@@ -3,8 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit"
+  },
   "packageManager": "yarn@1.22.22",
   "repository": "git@github.com:emilhornlund/pc-price-tracker.git",
   "author": "Emil Hörnlund <emil.hornlund@me.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2"
+  }
 }
