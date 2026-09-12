@@ -811,7 +811,7 @@ Keep composition in the application entry point rather than hiding dependencies 
 
 ---
 
-## [ ] 33. Add graceful shutdown
+## [X] 33. Add graceful shutdown
 
 Handle process shutdown cleanly.
 

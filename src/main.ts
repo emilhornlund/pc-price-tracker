@@ -1,5 +1,6 @@
 import { parseCliArgs } from './cli';
 import { createApplication } from './app';
+import { registerGracefulShutdown } from './shutdown';
 
 export async function main(args = process.argv.slice(2)): Promise<void> {
   const options = parseCliArgs(args);
@@ -15,6 +16,7 @@ export async function main(args = process.argv.slice(2)): Promise<void> {
     return;
   }
 
+  registerGracefulShutdown(application);
   application.startScheduled();
 }
 
