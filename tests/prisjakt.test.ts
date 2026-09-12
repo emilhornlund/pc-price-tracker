@@ -4,7 +4,9 @@ import path from 'node:path';
 import {
   fetchPrisjaktProductPage,
   parsePrisjaktProductOffers,
+  parsePriceToOre,
   parsePrisjaktProductTitle,
+  PrisjaktPriceParseError,
   PrisjaktProductParseError,
 } from '../src/prisjakt';
 
@@ -75,6 +77,25 @@ describe('parsePrisjaktProductOffers', () => {
       { store: 'Valid store', storeId: '12', price: 149_900 },
     ]);
   });
+});
+
+describe('parsePriceToOre', () => {
+  it.each([
+    ['1499 kr', 149_900],
+    ['1 499 kr', 149_900],
+    ['1\u00a0499 SEK', 149_900],
+    ['1.499,50 kr', 149_950],
+    ['1 499,5 kr', 149_950],
+  ])('normalizes %s to %i öre', (display, expected) => {
+    expect(parsePriceToOre(display)).toBe(expected);
+  });
+
+  it.each(['', '1 49 kr', '1,234 kr', '1499,999 kr', '1499 kr extra'])(
+    'rejects malformed price %s',
+    (display) => {
+      expect(() => parsePriceToOre(display)).toThrow(PrisjaktPriceParseError);
+    },
+  );
 });
 
 describe('fetchPrisjaktProductPage', () => {

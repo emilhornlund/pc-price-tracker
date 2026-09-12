@@ -8,6 +8,13 @@ export interface PrisjaktOffer {
   price: number;
 }
 
+export class PrisjaktPriceParseError extends Error {
+  constructor(value: string) {
+    super(`Failed to parse Prisjakt price: ${JSON.stringify(value)}`);
+    this.name = 'PrisjaktPriceParseError';
+  }
+}
+
 export class PrisjaktProductParseError extends Error {
   constructor(reason: string) {
     super(`Failed to parse Prisjakt product page: ${reason}`);
@@ -55,8 +62,14 @@ export function parsePrisjaktProductOffers(html: string): PrisjaktOffer[] {
       .map((__, heading) => $(heading).text().replace(/\s+/g, ' ').trim())
       .get()
       .find((text) => /(?:kr|sek)\b/i.test(text));
-    const price =
-      priceText === undefined ? undefined : parsePriceToOre(priceText);
+    let price: number | undefined;
+    if (priceText !== undefined) {
+      try {
+        price = parsePriceToOre(priceText);
+      } catch {
+        return;
+      }
+    }
 
     if (clickout.length === 0 || store === undefined || price === undefined) {
       return;
@@ -76,30 +89,40 @@ export function parsePrisjaktProductOffers(html: string): PrisjaktOffer[] {
 }
 
 /** Convert a Swedish/Prisjakt currency display into whole Swedish öre. */
-export function parsePriceToOre(value: string): number | undefined {
+export function parsePriceToOre(value: string): number {
+  if (typeof value !== 'string') {
+    throw new PrisjaktPriceParseError(String(value));
+  }
+
   const normalized = value
-    .replace(/\u00a0/g, ' ')
+    .replace(/[\u00a0\u202f]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .replace(/\s*(?:sek|kr)\s*$/i, '');
+  const match = normalized.match(
+    /^(\d+|\d{1,3}(?:[ .]\d{3})+)(?:,(\d{1,2}))?$/,
+  );
 
-  if (
-    !/^\d{1,3}(?:[ .]\d{3})*(?:,\d{1,2})?$|^\d+(?:,\d{1,2})?$/.test(normalized)
-  ) {
-    return undefined;
+  if (match === null) {
+    throw new PrisjaktPriceParseError(value);
   }
 
-  const [wholePart, decimalPart = ''] = normalized
-    .replace(/\./g, ' ')
-    .split(',');
-  const whole = Number(wholePart.replace(/[ .]/g, ''));
+  const whole = Number(match[1].replace(/[ .]/g, ''));
+  const decimal = match[2] ?? '';
 
-  if (!Number.isSafeInteger(whole) || decimalPart.length > 2) {
-    return undefined;
+  if (!Number.isSafeInteger(whole) || whole < 0) {
+    throw new PrisjaktPriceParseError(value);
   }
 
-  return whole * 100 + Number(decimalPart.padEnd(2, '0'));
+  const priceInOre = whole * 100 + Number(decimal.padEnd(2, '0'));
+  if (!Number.isSafeInteger(priceInOre)) {
+    throw new PrisjaktPriceParseError(value);
+  }
+
+  return priceInOre;
 }
+
+export const parsePrisjaktPrice = parsePriceToOre;
 
 export class PrisjaktProductFetchError extends Error {
   constructor(

@@ -280,7 +280,7 @@ Add fixture-based tests verifying multiple stores.
 
 ---
 
-## [ ] 11. Normalize monetary values
+## [X] 11. Normalize monetary values
 
 Define one canonical internal price representation.
 
