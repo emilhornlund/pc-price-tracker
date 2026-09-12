@@ -1,4 +1,5 @@
 import { closeDatabase, openDatabase } from '../src/database';
+import { NotificationRepository } from '../src/notifications';
 import { executeScan } from '../src/scanner';
 
 describe('executeScan notifications', () => {
@@ -78,6 +79,50 @@ describe('executeScan notifications', () => {
     expect(logger.info).toHaveBeenCalledWith(
       'Email skipped: no price decreases',
     );
+
+    closeDatabase(database);
+  });
+
+  it('keeps observations when SMTP delivery fails and records no notification', async () => {
+    const database = openDatabase(':memory:');
+    const productUrl = 'https://www.prisjakt.nu/produkt.php?p=4';
+    const parsePage = jest
+      .fn()
+      .mockReturnValueOnce({
+        title: 'Product',
+        offers: [{ store: 'Store', storeId: 'store', price: 159_900 }],
+      })
+      .mockReturnValueOnce({
+        title: 'Product',
+        offers: [{ store: 'Store', storeId: 'store', price: 149_900 }],
+      });
+    const emailSender = {
+      send: jest.fn().mockRejectedValue(new Error('SMTP unavailable')),
+    };
+    const logger = { info: jest.fn(), error: jest.fn() };
+    const dependencies = {
+      database,
+      fetchPage: jest.fn().mockResolvedValue('<html>fixture</html>'),
+      parsePage,
+      emailSender,
+      logger,
+      notificationRepository: new NotificationRepository(database),
+    };
+
+    await executeScan([productUrl], dependencies);
+    await expect(executeScan([productUrl], dependencies)).rejects.toThrow(
+      'SMTP unavailable',
+    );
+
+    expect(
+      database
+        .prepare('SELECT COUNT(*) AS count FROM price_observations')
+        .get(),
+    ).toEqual({ count: 2 });
+    expect(
+      database.prepare('SELECT COUNT(*) AS count FROM notifications').get(),
+    ).toEqual({ count: 0 });
+    expect(logger.error).toHaveBeenCalledWith('Email failed: SMTP unavailable');
 
     closeDatabase(database);
   });

@@ -710,7 +710,7 @@ Add database tests.
 
 ---
 
-## [ ] 28. Make notification failure safe
+## [X] 28. Make notification failure safe
 
 Ensure SMTP failure does not corrupt scan history.
 

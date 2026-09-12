@@ -5,6 +5,10 @@ import {
 } from './prisjakt';
 import { buildPriceDecreaseEmail, type EmailContent } from './email';
 import type { EmailSender } from './mailer';
+import {
+  NotificationRepository,
+  type NotificationRecord,
+} from './notifications';
 import { detectPriceDecrease, type PriceDecrease } from './price-changes';
 import type { TrackerDatabase } from './database';
 import {
@@ -47,11 +51,13 @@ export interface AggregateScanResult {
 
 export interface ScanExecutionDependencies extends ProductScanDependencies {
   emailSender?: EmailSender;
+  notificationRepository?: NotificationRepository;
 }
 
 export interface ScanExecutionResult extends AggregateScanResult {
   emailSent: boolean;
   emailContent?: EmailContent;
+  notification?: NotificationRecord;
 }
 
 export async function scanProduct(
@@ -153,9 +159,27 @@ export async function executeScan(
   }
 
   const emailContent = buildPriceDecreaseEmail(result.decreases);
-  await dependencies.emailSender.send(emailContent);
+  try {
+    await dependencies.emailSender.send(emailContent);
+  } catch (error) {
+    const sendError = asError(error);
+    logger.error(`Email failed: ${sendError.message}`);
+    throw sendError;
+  }
+
+  const notification =
+    dependencies.notificationRepository === undefined
+      ? undefined
+      : dependencies.notificationRepository.createSentNotification(
+          getNotificationChanges(result),
+        );
   logger.info(`Email sent: ${result.decreases.length} price decreases`);
-  return { ...result, emailSent: true, emailContent };
+  return {
+    ...result,
+    emailSent: true,
+    emailContent,
+    ...(notification === undefined ? {} : { notification }),
+  };
 }
 
 export const runScan = executeScan;
@@ -166,4 +190,22 @@ function fallbackStoreId(storeName: string): string {
 
 function asError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
+}
+
+function getNotificationChanges(result: AggregateScanResult) {
+  return result.successfulProducts.flatMap((productScan) =>
+    productScan.offers.flatMap((persistedOffer) => {
+      const change = persistedOffer.change;
+      return change === undefined
+        ? []
+        : [
+            {
+              productId: productScan.product.id,
+              storeId: persistedOffer.store.id,
+              previousPrice: change.previousPrice,
+              newPrice: change.newPrice,
+            },
+          ];
+    }),
+  );
 }
