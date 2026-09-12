@@ -935,7 +935,7 @@ Verify that the service can:
 
 ---
 
-## [ ] 38. Add GitHub Actions CI workflow
+## [X] 38. Add GitHub Actions CI workflow
 
 Create pull-request CI.
 
