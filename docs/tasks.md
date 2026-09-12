@@ -301,7 +301,7 @@ No floating-point monetary values should be stored in the database.
 
 ---
 
-## [ ] 12. Define the Prisjakt parsed product model
+## [X] 12. Define the Prisjakt parsed product model
 
 Introduce the minimal parsed representation used by the scanner.
 

@@ -8,6 +8,11 @@ export interface PrisjaktOffer {
   price: number;
 }
 
+export interface PrisjaktProduct {
+  title: string;
+  offers: PrisjaktOffer[];
+}
+
 export class PrisjaktPriceParseError extends Error {
   constructor(value: string) {
     super(`Failed to parse Prisjakt price: ${JSON.stringify(value)}`);
@@ -36,6 +41,13 @@ export function parsePrisjaktProductTitle(html: string): string {
   }
 
   return title;
+}
+
+export function parsePrisjaktProduct(html: string): PrisjaktProduct {
+  return {
+    title: parsePrisjaktProductTitle(html),
+    offers: parsePrisjaktProductOffers(html),
+  };
 }
 
 /**

@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import {
   fetchPrisjaktProductPage,
+  parsePrisjaktProduct,
   parsePrisjaktProductOffers,
   parsePriceToOre,
   parsePrisjaktProductTitle,
@@ -76,6 +77,24 @@ describe('parsePrisjaktProductOffers', () => {
     expect(parsePrisjaktProductOffers(html)).toEqual([
       { store: 'Valid store', storeId: '12', price: 149_900 },
     ]);
+  });
+});
+
+describe('parsePrisjaktProduct', () => {
+  it('returns the complete parsed product representation', () => {
+    const html = `
+      <h1>Example product</h1>
+      <div data-test="OfferListItem">
+        <a data-test="OfferClickoutButton" href="/go-to-shop/2/offer/4">
+          <img alt="Example store" /><h4>1 499 kr</h4>
+        </a>
+      </div>
+    `;
+
+    expect(parsePrisjaktProduct(html)).toEqual({
+      title: 'Example product',
+      offers: [{ store: 'Example store', storeId: '2', price: 149_900 }],
+    });
   });
 });
 
