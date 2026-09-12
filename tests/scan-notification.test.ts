@@ -126,4 +126,54 @@ describe('executeScan notifications', () => {
 
     closeDatabase(database);
   });
+
+  it.each([
+    ['unchanged prices', 159_900],
+    ['price increases', 169_900],
+  ])(
+    'persists a new observation but sends no email for %s',
+    async (_description, currentPrice) => {
+      const database = openDatabase(':memory:');
+      const parsePage = jest
+        .fn()
+        .mockReturnValueOnce({
+          title: 'Product',
+          offers: [{ store: 'Store', storeId: 'store', price: 159_900 }],
+        })
+        .mockReturnValueOnce({
+          title: 'Product',
+          offers: [{ store: 'Store', storeId: 'store', price: currentPrice }],
+        });
+      const emailSender = { send: jest.fn().mockResolvedValue(undefined) };
+      const logger = { info: jest.fn(), error: jest.fn() };
+      const dependencies = {
+        database,
+        fetchPage: jest.fn().mockResolvedValue('<html>fixture</html>'),
+        parsePage,
+        emailSender,
+        logger,
+      };
+
+      const first = await executeScan(
+        ['https://www.prisjakt.nu/produkt.php?p=5'],
+        dependencies,
+      );
+      const second = await executeScan(
+        ['https://www.prisjakt.nu/produkt.php?p=5'],
+        dependencies,
+      );
+
+      expect(first.decreases).toEqual([]);
+      expect(second.decreases).toEqual([]);
+      expect(second.emailSent).toBe(false);
+      expect(emailSender.send).not.toHaveBeenCalled();
+      expect(
+        database
+          .prepare('SELECT COUNT(*) AS count FROM price_observations')
+          .get(),
+      ).toEqual({ count: 2 });
+
+      closeDatabase(database);
+    },
+  );
 });

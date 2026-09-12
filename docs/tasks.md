@@ -994,7 +994,7 @@ Do not hard-code registry credentials.
 
 ---
 
-## [ ] 41. Expand automated coverage for the complete scan flow
+## [X] 41. Expand automated coverage for the complete scan flow
 
 Add higher-level tests covering the primary version 1 behavior.
 
