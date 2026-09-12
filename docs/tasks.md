@@ -330,7 +330,7 @@ Do not add generic provider abstractions.
 
 ---
 
-## [ ] 13. Add SQLite database infrastructure
+## [X] 13. Add SQLite database infrastructure
 
 Introduce SQLite persistence.
 
