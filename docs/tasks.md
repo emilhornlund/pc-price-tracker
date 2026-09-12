@@ -377,7 +377,7 @@ Add repository/database tests.
 
 ---
 
-## [ ] 15. Create the stores table
+## [X] 15. Create the stores table
 
 Implement persistence for stores discovered from Prisjakt offers.
 
