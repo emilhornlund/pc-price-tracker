@@ -98,7 +98,7 @@ yarn build
 
 ---
 
-## [ ] 4. Define and load YAML configuration
+## [X] 4. Define and load YAML configuration
 
 Implement application configuration loading from a YAML file.
 
