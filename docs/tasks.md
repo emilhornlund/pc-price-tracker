@@ -1120,7 +1120,7 @@ Avoid duplicating the complete requirements document in the README.
 
 ---
 
-## [ ] 44. Perform complete local verification
+## [X] 44. Perform complete local verification
 
 Before version 1 is considered complete, run the complete project validation locally:
 
