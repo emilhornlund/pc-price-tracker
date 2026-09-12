@@ -753,7 +753,7 @@ Do not add an HTTP API.
 
 ---
 
-## [ ] 30. Add scheduled scan execution
+## [X] 30. Add scheduled scan execution
 
 Implement the built-in scheduler.
 

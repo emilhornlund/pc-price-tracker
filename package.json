@@ -20,6 +20,7 @@
     "better-sqlite3": "^13.0.3",
     "cheerio": "^1.2.0",
     "js-yaml": "^5.4.1",
+    "node-cron": "^4.6.0",
     "nodemailer": "^10.0.9"
   },
   "devDependencies": {
