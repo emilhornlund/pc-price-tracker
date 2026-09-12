@@ -1,4 +1,29 @@
+import { load } from 'cheerio';
+
 export const DEFAULT_PRODUCT_PAGE_TIMEOUT_MS = 10_000;
+
+export class PrisjaktProductParseError extends Error {
+  constructor(reason: string) {
+    super(`Failed to parse Prisjakt product page: ${reason}`);
+    this.name = 'PrisjaktProductParseError';
+  }
+}
+
+export function parsePrisjaktProductTitle(html: string): string {
+  const $ = load(html);
+  const title = $('h1')
+    .map((_, element) => $(element).text().replace(/\s+/g, ' ').trim())
+    .get()
+    .find((candidate) => candidate.length > 0);
+
+  if (!title) {
+    throw new PrisjaktProductParseError(
+      'product title was not found in an h1 element',
+    );
+  }
+
+  return title;
+}
 
 export class PrisjaktProductFetchError extends Error {
   constructor(

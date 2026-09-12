@@ -1,4 +1,41 @@
-import { fetchPrisjaktProductPage } from '../src/prisjakt';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+
+import {
+  fetchPrisjaktProductPage,
+  parsePrisjaktProductTitle,
+  PrisjaktProductParseError,
+} from '../src/prisjakt';
+
+describe('parsePrisjaktProductTitle', () => {
+  it('extracts and normalizes the title from a Prisjakt fixture', () => {
+    const html = readFileSync(
+      path.join(__dirname, 'fixtures', 'product-13438192.html'),
+      'utf8',
+    );
+
+    expect(parsePrisjaktProductTitle(html)).toBe(
+      'Kingston FURY Beast RGB DDR5 Black 6000MHz 2x32GB CL30 (KF560C30BBEAK2-64)',
+    );
+  });
+
+  it('collapses whitespace in the title', () => {
+    expect(
+      parsePrisjaktProductTitle(
+        '<html><body><h1>  Kingston&nbsp; FURY\n <span>Beast</span> </h1></body></html>',
+      ),
+    ).toBe('Kingston FURY Beast');
+  });
+
+  it('throws a clear error when no title is present', () => {
+    expect(() =>
+      parsePrisjaktProductTitle('<html><body><p>Product</p></body></html>'),
+    ).toThrow(PrisjaktProductParseError);
+    expect(() =>
+      parsePrisjaktProductTitle('<html><body><p>Product</p></body></html>'),
+    ).toThrow('product title was not found in an h1 element');
+  });
+});
 
 describe('fetchPrisjaktProductPage', () => {
   const productUrl = 'https://www.prisjakt.nu/produkt.php?p=13438192';

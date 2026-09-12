@@ -17,6 +17,7 @@
   "author": "Emil Hörnlund <emil.hornlund@me.com>",
   "license": "MIT",
   "dependencies": {
+    "cheerio": "^1.2.0",
     "js-yaml": "^5.4.1"
   },
   "devDependencies": {

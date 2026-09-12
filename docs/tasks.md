@@ -239,7 +239,7 @@ Do not design speculative fields beyond:
 
 ---
 
-## [ ] 9. Parse the product title
+## [X] 9. Parse the product title
 
 Implement title parsing using Cheerio.
 
