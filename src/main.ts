@@ -1,15 +1,21 @@
 import { parseCliArgs } from './cli';
-import { runManualScan } from './app';
+import { createApplication } from './app';
 
 export async function main(args = process.argv.slice(2)): Promise<void> {
   const options = parseCliArgs(args);
 
-  if (!options.scan) {
-    console.log('No command selected. Use --scan to run an immediate scan.');
+  const application = createApplication(options.configPath);
+
+  if (options.scan) {
+    try {
+      await application.runScan();
+    } finally {
+      application.close();
+    }
     return;
   }
 
-  await runManualScan(options.configPath);
+  application.startScheduled();
 }
 
 if (require.main === module) {

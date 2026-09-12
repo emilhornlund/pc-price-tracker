@@ -792,7 +792,7 @@ No distributed lock is required for version 1.
 
 ---
 
-## [ ] 32. Complete application startup lifecycle
+## [X] 32. Complete application startup lifecycle
 
 Wire the application together in `src/main.ts`.
 
