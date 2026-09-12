@@ -26,6 +26,15 @@ export function openDatabase(
 
 export function initializeDatabase(database: TrackerDatabase): void {
   database.pragma('foreign_keys = ON');
+  database.exec(`
+    CREATE TABLE IF NOT EXISTS products (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      url TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+  `);
 }
 
 export function closeDatabase(database: TrackerDatabase): void {

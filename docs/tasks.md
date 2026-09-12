@@ -352,7 +352,7 @@ Do not introduce an ORM.
 
 ---
 
-## [ ] 14. Create the products table
+## [X] 14. Create the products table
 
 Implement persistence for tracked products.
 
