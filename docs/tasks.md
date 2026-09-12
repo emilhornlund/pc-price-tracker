@@ -632,7 +632,7 @@ Do not send email yet.
 
 ---
 
-## [ ] 25. Add SMTP email delivery
+## [X] 25. Add SMTP email delivery
 
 Implement email sending using Nodemailer.
 
