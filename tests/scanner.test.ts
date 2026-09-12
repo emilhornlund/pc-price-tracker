@@ -120,4 +120,52 @@ describe('scanProduct', () => {
 
     closeDatabase(database);
   });
+
+  it('establishes a baseline for a store that appears on a later scan', async () => {
+    const database = openDatabase(':memory:');
+    const productUrl = 'https://www.prisjakt.nu/produkt.php?p=2';
+    const parsePage = jest
+      .fn()
+      .mockReturnValueOnce({
+        title: 'Example product',
+        offers: [
+          { store: 'Existing store', storeId: 'store-1', price: 159_900 },
+        ],
+      })
+      .mockReturnValueOnce({
+        title: 'Example product',
+        offers: [
+          { store: 'Existing store', storeId: 'store-1', price: 149_900 },
+          { store: 'New store', storeId: 'store-2', price: 129_900 },
+        ],
+      });
+    const dependencies = {
+      database,
+      fetchPage: jest.fn().mockResolvedValue('<html>fixture</html>'),
+      parsePage,
+    };
+
+    await scanProduct(productUrl, dependencies);
+    const second = await scanProduct(productUrl, dependencies);
+
+    expect(second.decreases).toEqual([
+      {
+        product: 'Example product',
+        store: 'Existing store',
+        previousPrice: 159_900,
+        newPrice: 149_900,
+        decrease: 10_000,
+      },
+    ]);
+    expect(
+      database.prepare('SELECT COUNT(*) AS count FROM stores').get(),
+    ).toEqual({ count: 2 });
+    expect(
+      database
+        .prepare('SELECT COUNT(*) AS count FROM price_observations')
+        .get(),
+    ).toEqual({ count: 3 });
+
+    closeDatabase(database);
+  });
 });

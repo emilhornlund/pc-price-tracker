@@ -511,7 +511,7 @@ Add regression tests for repeated scans.
 
 ---
 
-## [ ] 20. Handle newly appearing stores correctly
+## [X] 20. Handle newly appearing stores correctly
 
 Implement behavior for stores that appear after earlier product scans.
 
