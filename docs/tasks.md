@@ -658,7 +658,7 @@ Add tests by mocking the transport.
 
 ---
 
-## [ ] 26. Send one consolidated notification after a scan
+## [X] 26. Send one consolidated notification after a scan
 
 Integrate notifications with scan execution.
 

@@ -3,6 +3,8 @@ import {
   parsePrisjaktProduct,
   type PrisjaktProduct,
 } from './prisjakt';
+import { buildPriceDecreaseEmail, type EmailContent } from './email';
+import type { EmailSender } from './mailer';
 import { detectPriceDecrease, type PriceDecrease } from './price-changes';
 import type { TrackerDatabase } from './database';
 import {
@@ -41,6 +43,15 @@ export interface AggregateScanResult {
   successfulProducts: PersistedProductScan[];
   failedProducts: FailedProductScan[];
   decreases: PriceDecrease[];
+}
+
+export interface ScanExecutionDependencies extends ProductScanDependencies {
+  emailSender?: EmailSender;
+}
+
+export interface ScanExecutionResult extends AggregateScanResult {
+  emailSent: boolean;
+  emailContent?: EmailContent;
 }
 
 export async function scanProduct(
@@ -120,6 +131,34 @@ export async function scanProducts(
 }
 
 export const scanConfiguredProducts = scanProducts;
+
+export async function executeScan(
+  productUrls: string[],
+  dependencies: ScanExecutionDependencies,
+): Promise<ScanExecutionResult> {
+  const result = await scanProducts(productUrls, dependencies);
+  const logger = dependencies.logger ?? console;
+
+  if (result.decreases.length === 0) {
+    logger.info('Email skipped: no price decreases');
+    return { ...result, emailSent: false };
+  }
+
+  if (dependencies.emailSender === undefined) {
+    const error = new Error(
+      'Price decreases were detected but no email sender is configured',
+    );
+    logger.error(`Email failed: ${error.message}`);
+    throw error;
+  }
+
+  const emailContent = buildPriceDecreaseEmail(result.decreases);
+  await dependencies.emailSender.send(emailContent);
+  logger.info(`Email sent: ${result.decreases.length} price decreases`);
+  return { ...result, emailSent: true, emailContent };
+}
+
+export const runScan = executeScan;
 
 function fallbackStoreId(storeName: string): string {
   return `name:${storeName.trim().toLocaleLowerCase('sv-SE')}`;
