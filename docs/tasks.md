@@ -890,7 +890,7 @@ Do not bake private configuration into the Docker image.
 
 ---
 
-## [ ] 36. Add persistent Docker database storage
+## [X] 36. Add persistent Docker database storage
 
 Ensure SQLite data survives container replacement.
 

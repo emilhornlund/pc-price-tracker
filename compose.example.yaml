@@ -5,6 +5,8 @@ services:
     configs:
       - source: pc-price-tracker-config
         target: /opt/pc-price-tracker/config.yaml
+    volumes:
+      - pc-price-tracker-data:/opt/pc-price-tracker/data
 
 configs:
   pc-price-tracker-config:
@@ -19,3 +21,6 @@ configs:
       notifications:
         email:
           enabled: false
+
+volumes:
+  pc-price-tracker-data:
