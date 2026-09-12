@@ -974,7 +974,7 @@ This catches Docker/runtime issues separately from the TypeScript build.
 
 ---
 
-## [ ] 40. Add Docker image publishing workflow
+## [X] 40. Add Docker image publishing workflow
 
 Add automated Docker image publishing.
 
