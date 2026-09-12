@@ -141,7 +141,7 @@ Do not resolve SMTP secrets yet.
 
 ---
 
-## [ ] 5. Validate application configuration
+## [X] 5. Validate application configuration
 
 Add startup validation for the YAML configuration.
 
