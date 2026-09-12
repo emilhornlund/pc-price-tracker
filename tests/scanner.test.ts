@@ -192,7 +192,7 @@ describe('scanProduct', () => {
         },
       ],
     }));
-    const logger = { error: jest.fn() };
+    const logger = { error: jest.fn(), info: jest.fn() };
 
     const result = await scanProducts(productUrls, {
       database,
@@ -213,6 +213,12 @@ describe('scanProduct', () => {
     expect(logger.error).toHaveBeenCalledWith(
       `Product scan failed for ${productUrls[1]}: temporary upstream failure`,
     );
+    expect(logger.info).toHaveBeenCalledWith('Scan started');
+    expect(logger.info).toHaveBeenCalledWith('Products configured: 3');
+    expect(logger.info).toHaveBeenCalledWith(
+      `Product being processed: ${productUrls[2]}`,
+    );
+    expect(logger.info).toHaveBeenCalledWith('Scan completed');
     expect(
       database
         .prepare(

@@ -16,7 +16,7 @@ export interface ProductScanDependencies {
   database: TrackerDatabase;
   fetchPage?: (productUrl: string) => Promise<string>;
   parsePage?: (html: string) => PrisjaktProduct;
-  logger?: Pick<Console, 'error'>;
+  logger?: Pick<Console, 'error' | 'info'>;
 }
 
 export interface PersistedOffer {
@@ -91,21 +91,31 @@ export async function scanProducts(
   const successfulProducts: PersistedProductScan[] = [];
   const failedProducts: FailedProductScan[] = [];
   const decreases: PriceDecrease[] = [];
+  const logger = dependencies.logger ?? console;
+
+  logger.info('Scan started');
+  logger.info(`Products configured: ${productUrls.length}`);
 
   for (const productUrl of productUrls) {
+    logger.info(`Product being processed: ${productUrl}`);
     try {
       const result = await scanProduct(productUrl, dependencies);
       successfulProducts.push(result);
       decreases.push(...result.decreases);
+      logger.info(`Product title: ${result.product.title}`);
+      logger.info(`Offers parsed: ${result.parsed.offers.length}`);
+      logger.info(`Decreases detected: ${result.decreases.length}`);
     } catch (error) {
       const scanError = asError(error);
-      (dependencies.logger ?? console).error(
+      logger.error(
         `Product scan failed for ${productUrl}: ${scanError.message}`,
       );
       failedProducts.push({ productUrl, error: scanError });
     }
   }
 
+  logger.info(`Decreases detected: ${decreases.length}`);
+  logger.info('Scan completed');
   return { successfulProducts, failedProducts, decreases };
 }
 

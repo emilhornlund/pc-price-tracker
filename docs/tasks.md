@@ -576,7 +576,7 @@ Add tests covering partial scan failure.
 
 ---
 
-## [ ] 23. Add structured scan logging
+## [X] 23. Add structured scan logging
 
 Add simple useful application logging.
 
