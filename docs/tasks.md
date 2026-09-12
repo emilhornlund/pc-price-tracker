@@ -1089,7 +1089,7 @@ Refactor only where this materially improves the implementation.
 
 ---
 
-## [ ] 43. Complete README documentation
+## [X] 43. Complete README documentation
 
 Expand `README.md` for actual project use.
 

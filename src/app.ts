@@ -1,3 +1,5 @@
+import path from 'node:path';
+
 import {
   getDefaultConfigPath,
   loadConfig,
@@ -35,7 +37,9 @@ export function createApplication(
   const config = loadConfig(configPath);
   validateConfig(config);
   const credentials = resolveConfigSecrets(config);
-  const database = openDatabase(options.databasePath ?? DEFAULT_DATABASE_PATH);
+  const database = openDatabase(
+    options.databasePath ?? getDefaultApplicationDatabasePath(),
+  );
   const logger = options.logger ?? console;
   const emailSender =
     config.notifications.email.enabled && credentials !== undefined
@@ -80,6 +84,12 @@ export function createApplication(
       closeDatabase(database);
     },
   };
+}
+
+function getDefaultApplicationDatabasePath(): string {
+  return process.env.NODE_ENV === 'production'
+    ? DEFAULT_DATABASE_PATH
+    : path.resolve(process.cwd(), 'data', 'pc-price-tracker.db');
 }
 
 export async function runManualScan(
