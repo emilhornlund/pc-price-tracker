@@ -961,7 +961,7 @@ Requirements:
 
 ---
 
-## [ ] 39. Add Docker build validation to CI
+## [X] 39. Add Docker build validation to CI
 
 Ensure pull requests verify that the production Docker image still builds.
 
