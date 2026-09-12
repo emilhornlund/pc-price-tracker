@@ -433,7 +433,7 @@ Add repository/database tests.
 
 ---
 
-## [ ] 17. Persist one scraped product
+## [X] 17. Persist one scraped product
 
 Connect fetching, parsing, and persistence for a single product.
 
