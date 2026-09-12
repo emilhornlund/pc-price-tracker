@@ -777,7 +777,7 @@ Use a small established cron library rather than implementing cron parsing manua
 
 ---
 
-## [ ] 31. Prevent overlapping scans
+## [X] 31. Prevent overlapping scans
 
 Ensure only one scan can run at a time within the application instance.
 

@@ -49,4 +49,36 @@ describe('startScheduler', () => {
       'Scheduled scan failed: scan failed',
     );
   });
+
+  it('skips a scheduled execution while another scan is running', async () => {
+    let onTick: (() => void) | undefined;
+    let resolveScan: (() => void) | undefined;
+    const scheduleTask = jest.fn(((_expression, callback) => {
+      onTick = callback;
+      return { stop: jest.fn() };
+    }) as CronSchedule);
+    const scan = jest.fn(
+      () =>
+        new Promise<void>((resolve) => {
+          resolveScan = resolve;
+        }),
+    );
+    const logger = { info: jest.fn(), error: jest.fn() };
+    startScheduler(
+      { cron: '* * * * *', timezone: 'UTC' },
+      scan,
+      logger,
+      scheduleTask,
+    );
+
+    onTick!();
+    onTick!();
+
+    expect(scan).toHaveBeenCalledTimes(1);
+    expect(logger.info).toHaveBeenCalledWith(
+      'Scheduled scan skipped because a scan is already running',
+    );
+    resolveScan!();
+    await Promise.resolve();
+  });
 });
