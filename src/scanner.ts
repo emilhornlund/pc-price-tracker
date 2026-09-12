@@ -16,6 +16,7 @@ export interface ProductScanDependencies {
   database: TrackerDatabase;
   fetchPage?: (productUrl: string) => Promise<string>;
   parsePage?: (html: string) => PrisjaktProduct;
+  logger?: Pick<Console, 'error'>;
 }
 
 export interface PersistedOffer {
@@ -97,7 +98,11 @@ export async function scanProducts(
       successfulProducts.push(result);
       decreases.push(...result.decreases);
     } catch (error) {
-      failedProducts.push({ productUrl, error: asError(error) });
+      const scanError = asError(error);
+      (dependencies.logger ?? console).error(
+        `Product scan failed for ${productUrl}: ${scanError.message}`,
+      );
+      failedProducts.push({ productUrl, error: scanError });
     }
   }
 

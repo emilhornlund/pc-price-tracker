@@ -550,7 +550,7 @@ Do not send email inside individual product processing.
 
 ---
 
-## [ ] 22. Make individual product failures non-fatal to the scan
+## [X] 22. Make individual product failures non-fatal to the scan
 
 One broken product must not abort the entire run.
 

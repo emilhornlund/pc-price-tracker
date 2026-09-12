@@ -192,11 +192,13 @@ describe('scanProduct', () => {
         },
       ],
     }));
+    const logger = { error: jest.fn() };
 
     const result = await scanProducts(productUrls, {
       database,
       fetchPage,
       parsePage,
+      logger,
     });
 
     expect(fetchPage).toHaveBeenCalledTimes(3);
@@ -208,6 +210,16 @@ describe('scanProduct', () => {
       },
     ]);
     expect(result.decreases).toEqual([]);
+    expect(logger.error).toHaveBeenCalledWith(
+      `Product scan failed for ${productUrls[1]}: temporary upstream failure`,
+    );
+    expect(
+      database
+        .prepare(
+          'SELECT COUNT(*) AS count FROM price_observations WHERE price = 0',
+        )
+        .get(),
+    ).toEqual({ count: 0 });
 
     closeDatabase(database);
   });
