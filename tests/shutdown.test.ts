@@ -21,6 +21,6 @@ describe('registerGracefulShutdown', () => {
     expect(target.once).toHaveBeenCalledWith('SIGTERM', expect.any(Function));
     expect(target.once).toHaveBeenCalledWith('SIGINT', expect.any(Function));
     expect(application.close).toHaveBeenCalledTimes(1);
-    expect(logger.info).toHaveBeenCalledWith('Shutting down');
+    expect(logger.info).toHaveBeenCalledWith('Graceful shutdown starting');
   });
 });

@@ -2,12 +2,16 @@ import { parseCliArgs } from './cli';
 import { createApplication } from './app';
 import { registerGracefulShutdown } from './shutdown';
 
-export async function main(args = process.argv.slice(2)): Promise<void> {
+export async function main(
+  args = process.argv.slice(2),
+  logger: Pick<Console, 'error' | 'info'> = console,
+): Promise<void> {
   const options = parseCliArgs(args);
 
-  const application = createApplication(options.configPath);
+  const application = createApplication(options.configPath, { logger });
 
   if (options.scan) {
+    logger.info('Manual scan mode starting');
     try {
       await application.runScan();
     } finally {
@@ -16,7 +20,7 @@ export async function main(args = process.argv.slice(2)): Promise<void> {
     return;
   }
 
-  registerGracefulShutdown(application);
+  registerGracefulShutdown(application, process, logger);
   application.startScheduled();
 }
 

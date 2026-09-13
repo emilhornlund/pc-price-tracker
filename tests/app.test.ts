@@ -21,17 +21,36 @@ notifications:
 `,
     );
 
+    const logger = { info: jest.fn(), error: jest.fn() };
     const application = createApplication(configPath, {
       databasePath: ':memory:',
-      logger: { info: jest.fn(), error: jest.fn() },
+      logger,
     });
 
     expect(application.config.products).toEqual([
       'https://www.prisjakt.nu/produkt.php?p=1',
     ]);
     expect(application.database.open).toBe(true);
+    expect(logger.info).toHaveBeenCalledWith('PC Price Tracker starting');
+    expect(logger.info).toHaveBeenCalledWith('Configuration loaded');
+    expect(logger.info).toHaveBeenCalledWith('Database initialized');
+    expect(logger.info).toHaveBeenCalledWith('Email notifications disabled');
+
+    application.startScheduled();
+    expect(logger.info).toHaveBeenCalledWith(
+      'Scheduler initialized: * * * * *',
+    );
+    expect(logger.info).toHaveBeenCalledWith('Scheduler timezone: UTC');
+    expect(logger.info).toHaveBeenCalledWith('PC Price Tracker ready');
+    expect(logger.info).toHaveBeenCalledWith('Waiting for scheduled scans');
+
     application.close();
     expect(application.database.open).toBe(false);
+    expect(logger.info).toHaveBeenCalledWith(
+      'Scheduler stopped during shutdown',
+    );
+    expect(logger.info).toHaveBeenCalledWith('Database closed during shutdown');
+    expect(logger.info).toHaveBeenCalledWith('Graceful shutdown completed');
     rmSync(directory, { recursive: true, force: true });
   });
 });

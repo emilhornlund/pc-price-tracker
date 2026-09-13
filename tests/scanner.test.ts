@@ -218,6 +218,11 @@ describe('scanProduct', () => {
     expect(logger.info).toHaveBeenCalledWith(
       `Product being processed: ${productUrls[2]}`,
     );
+    expect(
+      logger.info.mock.calls.filter(
+        ([message]) => message === 'Decreases detected: 0',
+      ),
+    ).toHaveLength(1);
     expect(logger.info).toHaveBeenCalledWith('Scan completed');
     expect(
       database

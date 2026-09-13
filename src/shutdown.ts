@@ -15,7 +15,7 @@ export function registerGracefulShutdown(
       return;
     }
     closed = true;
-    logger.info('Shutting down');
+    logger.info('Graceful shutdown starting');
     application.close();
   };
 

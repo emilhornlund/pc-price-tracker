@@ -34,17 +34,25 @@ export function createApplication(
   configPath = getDefaultConfigPath(),
   options: ApplicationOptions = {},
 ): Application {
+  const logger = options.logger ?? console;
+  logger.info('PC Price Tracker starting');
   const config = loadConfig(configPath);
   validateConfig(config);
   const credentials = resolveConfigSecrets(config);
+  logger.info('Configuration loaded');
   const database = openDatabase(
     options.databasePath ?? getDefaultApplicationDatabasePath(),
   );
-  const logger = options.logger ?? console;
+  logger.info('Database initialized');
   const emailSender =
     config.notifications.email.enabled && credentials !== undefined
       ? createSmtpEmailSender(config.notifications.email, credentials)
       : undefined;
+  logger.info(
+    config.notifications.email.enabled
+      ? 'Email notifications enabled'
+      : 'Email notifications disabled',
+  );
   const notificationRepository = new NotificationRepository(database);
   let scheduler: ScanScheduler | undefined;
   let closed = false;
@@ -66,13 +74,19 @@ export function createApplication(
       if (closed) {
         throw new Error('Application is already closed');
       }
-      scheduler ??= startScheduler(
-        config.schedule,
-        async () => {
-          await runScan();
-        },
-        logger,
-      );
+      if (scheduler === undefined) {
+        scheduler = startScheduler(
+          config.schedule,
+          async () => {
+            await runScan();
+          },
+          logger,
+        );
+        logger.info(`Scheduler initialized: ${config.schedule.cron}`);
+        logger.info(`Scheduler timezone: ${config.schedule.timezone}`);
+        logger.info('PC Price Tracker ready');
+        logger.info('Waiting for scheduled scans');
+      }
       return scheduler;
     },
     close: () => {
@@ -80,8 +94,13 @@ export function createApplication(
         return;
       }
       closed = true;
-      scheduler?.stop();
+      if (scheduler !== undefined) {
+        scheduler.stop();
+        logger.info('Scheduler stopped during shutdown');
+      }
       closeDatabase(database);
+      logger.info('Database closed during shutdown');
+      logger.info('Graceful shutdown completed');
     },
   };
 }

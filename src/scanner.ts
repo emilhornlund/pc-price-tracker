@@ -122,7 +122,6 @@ export async function scanProducts(
       decreases.push(...result.decreases);
       logger.info(`Product title: ${result.product.title}`);
       logger.info(`Offers parsed: ${result.parsed.offers.length}`);
-      logger.info(`Decreases detected: ${result.decreases.length}`);
     } catch (error) {
       const scanError = asError(error);
       logger.error(
