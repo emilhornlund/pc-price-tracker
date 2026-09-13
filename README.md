@@ -1,96 +1,122 @@
 # PC Price Tracker
 
-PC Price Tracker is a small self-hosted service that monitors explicitly
-configured Prisjakt product pages. It stores each store's price history in
-SQLite and sends one consolidated email after a scan for first observations
-and price decreases.
+[![CI](https://github.com/emilhornlund/pc-price-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/emilhornlund/pc-price-tracker/actions/workflows/ci.yml)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Node.js 24](https://img.shields.io/badge/Node.js-24-339933?logo=node.js&logoColor=white)](package.json)
+[![Yarn 1.22.22](https://img.shields.io/badge/Yarn-1.22.22-2C8EBB?logo=yarn&logoColor=white)](package.json)
 
-## Requirements
+> A self-hosted Prisjakt price tracker for explicitly configured product URLs.
 
-- Node.js 24 LTS for local development
-- Yarn 1 (the repository pins Yarn through `packageManager`)
-- Docker for production deployment
+PC Price Tracker scans configured products once on startup and then according to
+the configured schedule. It tracks each store independently, persists every
+successful price observation in SQLite, and sends one consolidated email for
+first-observed prices and price decreases.
 
-## Local setup
+---
 
-Install dependencies with Yarn:
+## Overview
+
+The application is a small, long-lived Docker service with no web UI or product
+discovery. A scan completes across all configured products before relevant
+notification events are collected and sent in a single email.
+
+## Quick Start
+
+Local development requires Node.js 24 and Yarn 1.22.22 through Corepack.
 
 ```sh
+git clone git@github.com:emilhornlund/pc-price-tracker.git
+cd pc-price-tracker
 corepack enable
+yarn install --frozen-lockfile
 ```
 
-Copy `config.example.yaml` to `config.yaml` and add the Prisjakt product URLs
-to monitor. `config.yaml` is intentionally ignored by Git.
-
-When email is enabled, configure the environment variables named by
-`notifications.email.smtp.usernameEnv` and `passwordEnv`:
+Copy the repository examples, then edit the files for your products and SMTP
+account:
 
 ```sh
-export SMTP_USERNAME='example@example.com'
-export SMTP_PASSWORD='replace-me'
+cp config.example.yaml config.yaml
+cp .env.example .env
 ```
 
-SMTP credentials are never read from or stored in the YAML file.
-
-## Running
-
-Run one scan immediately:
+Build and start normal scheduled mode:
 
 ```sh
-
+yarn build
+yarn start
 ```
 
-Use another YAML file for local testing with:
+The service performs an initial scan and remains running for scheduled scans. To
+run one scan and exit instead:
 
 ```sh
-
+node dist/main.js --scan
 ```
 
-Without `--scan`, the application starts its built-in scheduler using the
-configured cron expression and timezone and stays running between scans.
+## Configuration
 
-The default local database is `data/pc-price-tracker.db` when the application
-is started from the project directory. Production uses
-`/opt/pc-price-tracker/data/pc-price-tracker.db`.
+`config.yaml` contains the non-secret application configuration. Start from
+[`config.example.yaml`](config.example.yaml) and configure:
 
-## Development commands
+- Explicit Prisjakt product URLs under `products`.
+- A five-field cron expression and IANA timezone under `schedule`.
+- Email recipients, sender, and SMTP connection details under
+  `notifications.email`.
+
+The YAML file contains the names of the SMTP environment variables, not their
+values. Put those values in the environment or in a local `.env` file created
+from [`.env.example`](.env.example); `.env` is ignored by Git.
+
+## Development
+
+Run the project checks with:
 
 ```sh
-
+yarn lint
+yarn format:check
+yarn typecheck
+yarn test
+yarn build
 ```
 
-Tests use isolated SQLite databases and checked-in Prisjakt HTML fixtures; they
-do not require live Prisjakt requests.
+Tests use isolated SQLite databases and checked-in Prisjakt HTML fixtures, so
+they do not require live Prisjakt requests.
 
-## Docker
+## Docker / Deployment
 
-Build the production image:
+Build the production image from the repository root:
 
 ```sh
-
+docker build --tag pc-price-tracker .
 ```
 
-The image runs as the non-root `node` user from `/opt/pc-price-tracker` and
-expects configuration at `/opt/pc-price-tracker/config.yaml`. The database is
-stored below `/opt/pc-price-tracker/data/`.
-
-`compose.example.yaml` demonstrates the production deployment model:
-
-- inline Docker Compose `configs.content` for the YAML configuration;
-- `stack.env` for SMTP credentials;
-- the persistent `pc-price-tracker-data` volume; and
-- the existing external `core-network`.
-
-Create `stack.env` from `.env.example`, configure the registry image and
-network for the host, then run:
+The image runs as the non-root `node` user from `/opt/pc-price-tracker`. Supply
+configuration and SMTP environment variables externally, and persist the
+SQLite data directory with a Docker volume:
 
 ```sh
-
+docker volume create pc-price-tracker-data
+docker run --detach --restart unless-stopped \
+  --name pc-price-tracker \
+  --env-file .env \
+  --mount type=bind,source="$PWD/config.yaml",target=/opt/pc-price-tracker/config.yaml,readonly \
+  --mount type=volume,source=pc-price-tracker-data,target=/opt/pc-price-tracker/data \
+  pc-price-tracker
 ```
 
-Do not commit `stack.env` or any file containing credentials.
+The container expects the YAML configuration at
+`/opt/pc-price-tracker/config.yaml` and stores the database at
+`/opt/pc-price-tracker/data/pc-price-tracker.db`. Persist the entire
+`/opt/pc-price-tracker/data` directory; otherwise the SQLite history is lost
+when the container is replaced.
 
-## Further documentation
+## Documentation
 
 - [Requirements](docs/requirements.md)
-- [Implementation tasks](docs/tasks.md)
+
+---
+
+## License
+
+PC Price Tracker is licensed under the MIT License. See [`LICENSE`](LICENSE) for
+the complete terms.

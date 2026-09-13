@@ -3,7 +3,6 @@ dist/
 
 config.yaml
 .env
-stack.env
 
 *.log
 logs/
