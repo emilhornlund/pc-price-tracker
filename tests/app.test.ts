@@ -41,8 +41,6 @@ notifications:
       'Scheduler initialized: * * * * *',
     );
     expect(logger.info).toHaveBeenCalledWith('Scheduler timezone: UTC');
-    expect(logger.info).toHaveBeenCalledWith('PC Price Tracker ready');
-    expect(logger.info).toHaveBeenCalledWith('Waiting for scheduled scans');
 
     application.close();
     expect(application.database.open).toBe(false);

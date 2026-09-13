@@ -84,8 +84,6 @@ export function createApplication(
         );
         logger.info(`Scheduler initialized: ${config.schedule.cron}`);
         logger.info(`Scheduler timezone: ${config.schedule.timezone}`);
-        logger.info('PC Price Tracker ready');
-        logger.info('Waiting for scheduled scans');
       }
       return scheduler;
     },

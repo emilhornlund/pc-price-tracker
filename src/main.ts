@@ -24,6 +24,16 @@ export async function main(
 
   registerGracefulShutdown(application, process, logger);
   application.startScheduled();
+  logger.info('Initial scan starting');
+  try {
+    await application.runScan();
+    logger.info('Initial scan completed');
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Initial scan failed: ${message}`);
+  }
+  logger.info('PC Price Tracker ready');
+  logger.info('Waiting for scheduled scans');
 }
 
 if (require.main === module) {

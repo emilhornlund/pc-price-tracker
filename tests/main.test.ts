@@ -8,12 +8,17 @@ jest.mock('../src/app', () => ({
   createApplication: jest.fn(),
 }));
 
+jest.mock('../src/shutdown', () => ({
+  registerGracefulShutdown: jest.fn(),
+}));
+
 describe('main', () => {
   it('identifies a one-off scan when manual mode is selected', async () => {
     const { main } = await importMain();
     const { createApplication } = await import('../src/app');
     const application = {
       runScan: jest.fn().mockResolvedValue(undefined),
+      startScheduled: jest.fn(),
       close: jest.fn(),
     } as unknown as Application;
     const logger = { info: jest.fn(), error: jest.fn() };
@@ -23,7 +28,53 @@ describe('main', () => {
 
     expect(logger.info).toHaveBeenCalledWith('Manual scan mode starting');
     expect(application.runScan).toHaveBeenCalledTimes(1);
+    expect(application.startScheduled).not.toHaveBeenCalled();
     expect(application.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs one initial scan and leaves the scheduler active in scheduled mode', async () => {
+    const { main } = await importMain();
+    const { createApplication } = await import('../src/app');
+    const application = {
+      runScan: jest.fn().mockResolvedValue(undefined),
+      startScheduled: jest.fn().mockReturnValue({ stop: jest.fn() }),
+      close: jest.fn(),
+    } as unknown as Application;
+    const logger = { info: jest.fn(), error: jest.fn() };
+    jest.mocked(createApplication).mockReturnValue(application);
+
+    await main([], logger);
+
+    expect(application.startScheduled).toHaveBeenCalledTimes(1);
+    expect(application.runScan).toHaveBeenCalledTimes(1);
+    expect(logger.info.mock.calls).toEqual([
+      ['Initial scan starting'],
+      ['Initial scan completed'],
+      ['PC Price Tracker ready'],
+      ['Waiting for scheduled scans'],
+    ]);
+  });
+
+  it('keeps scheduled mode running when the initial scan fails', async () => {
+    const { main } = await importMain();
+    const { createApplication } = await import('../src/app');
+    const application = {
+      runScan: jest.fn().mockRejectedValue(new Error('Prisjakt unavailable')),
+      startScheduled: jest.fn().mockReturnValue({ stop: jest.fn() }),
+      close: jest.fn(),
+    } as unknown as Application;
+    const logger = { info: jest.fn(), error: jest.fn() };
+    jest.mocked(createApplication).mockReturnValue(application);
+
+    await expect(main([], logger)).resolves.toBeUndefined();
+
+    expect(application.startScheduled).toHaveBeenCalledTimes(1);
+    expect(application.runScan).toHaveBeenCalledTimes(1);
+    expect(logger.error).toHaveBeenCalledWith(
+      'Initial scan failed: Prisjakt unavailable',
+    );
+    expect(logger.info).toHaveBeenCalledWith('PC Price Tracker ready');
+    expect(logger.info).toHaveBeenCalledWith('Waiting for scheduled scans');
   });
 
   it('loads local dotenv values before startup', async () => {
