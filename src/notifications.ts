@@ -1,22 +1,50 @@
 import type { TrackerDatabase } from './database';
 
-export interface NotificationChangeInput {
+export type NotificationEventType = 'FIRST_OBSERVED' | 'PRICE_DECREASE';
+
+interface NotificationEventIdentity {
   productId: number;
   storeId: string;
+}
+
+export interface FirstObservedNotificationInput extends NotificationEventIdentity {
+  type: 'FIRST_OBSERVED';
+  currentPrice: number;
+}
+
+export interface PriceDecreaseNotificationInput extends NotificationEventIdentity {
+  type: 'PRICE_DECREASE';
   previousPrice: number;
   newPrice: number;
 }
 
-export interface NotificationChangeRecord extends NotificationChangeInput {
+export type NotificationEventInput =
+  FirstObservedNotificationInput | PriceDecreaseNotificationInput;
+
+interface NotificationEventRecordBase extends NotificationEventIdentity {
   id: number;
   notificationId: number;
+}
+
+export interface FirstObservedNotificationRecord extends NotificationEventRecordBase {
+  type: 'FIRST_OBSERVED';
+  currentPrice: number;
+}
+
+export interface PriceDecreaseNotificationRecord extends NotificationEventRecordBase {
+  type: 'PRICE_DECREASE';
+  previousPrice: number;
+  newPrice: number;
   decrease: number;
 }
+
+export type NotificationEventRecord =
+  FirstObservedNotificationRecord | PriceDecreaseNotificationRecord;
 
 export interface NotificationRecord {
   id: number;
   sentAt: string;
-  changes: NotificationChangeRecord[];
+  events: NotificationEventRecord[];
 }
 
 interface NotificationRow {
@@ -24,25 +52,26 @@ interface NotificationRow {
   sent_at: string;
 }
 
-interface NotificationChangeRow {
+interface NotificationEventRow {
   id: number;
   notification_id: number;
   product_id: number;
   store_id: string;
-  previous_price: number;
+  event_type: NotificationEventType;
+  previous_price: number | null;
   new_price: number;
-  decrease: number;
+  decrease: number | null;
 }
 
 export class NotificationRepository {
   public constructor(private readonly database: TrackerDatabase) {}
 
   public createSentNotification(
-    changes: readonly NotificationChangeInput[],
+    events: readonly NotificationEventInput[],
     sentAt = new Date().toISOString(),
   ): NotificationRecord {
-    if (changes.length === 0) {
-      throw new Error('A notification must contain at least one price change');
+    if (events.length === 0) {
+      throw new Error('A notification must contain at least one price event');
     }
 
     const create = this.database.transaction(() => {
@@ -50,23 +79,27 @@ export class NotificationRepository {
         .prepare('INSERT INTO notifications (sent_at) VALUES (?)')
         .run(sentAt);
       const notificationId = Number(notificationResult.lastInsertRowid);
-      const insertChange = this.database.prepare(
+      const insertEvent = this.database.prepare(
         `
           INSERT INTO notification_changes
-            (notification_id, product_id, store_id, previous_price, new_price, decrease)
-          VALUES (?, ?, ?, ?, ?, ?)
+            (notification_id, product_id, store_id, event_type,
+             previous_price, new_price, decrease)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
         `,
       );
 
-      for (const change of changes) {
-        validateChange(change);
-        insertChange.run(
+      for (const event of events) {
+        validateEvent(event);
+        insertEvent.run(
           notificationId,
-          change.productId,
-          change.storeId,
-          change.previousPrice,
-          change.newPrice,
-          change.previousPrice - change.newPrice,
+          event.productId,
+          event.storeId,
+          event.type,
+          event.type === 'FIRST_OBSERVED' ? null : event.previousPrice,
+          event.type === 'FIRST_OBSERVED' ? event.currentPrice : event.newPrice,
+          event.type === 'FIRST_OBSERVED'
+            ? null
+            : event.previousPrice - event.newPrice,
         );
       }
 
@@ -84,7 +117,7 @@ export class NotificationRepository {
       return undefined;
     }
 
-    const changes = this.database
+    const events = this.database
       .prepare(
         `
           SELECT * FROM notification_changes
@@ -92,42 +125,66 @@ export class NotificationRepository {
           ORDER BY id ASC
         `,
       )
-      .all(id) as NotificationChangeRow[];
+      .all(id) as NotificationEventRow[];
 
     return {
       id: notification.id,
       sentAt: notification.sent_at,
-      changes: changes.map(mapChangeRow),
+      events: events.map(mapEventRow),
     };
   }
 }
 
 export const recordSentNotification = (
   repository: NotificationRepository,
-  changes: readonly NotificationChangeInput[],
+  events: readonly NotificationEventInput[],
   sentAt?: string,
-): NotificationRecord => repository.createSentNotification(changes, sentAt);
+): NotificationRecord => repository.createSentNotification(events, sentAt);
 
-function validateChange(change: NotificationChangeInput): void {
-  if (
-    !Number.isSafeInteger(change.previousPrice) ||
-    !Number.isSafeInteger(change.newPrice) ||
-    change.previousPrice <= change.newPrice ||
-    change.previousPrice < 0 ||
-    change.newPrice < 0
-  ) {
+function validateEvent(event: NotificationEventInput): void {
+  if (event.type === 'FIRST_OBSERVED') {
+    validatePrice(event.currentPrice, 'current price');
+    return;
+  }
+
+  validatePrice(event.previousPrice, 'previous price');
+  validatePrice(event.newPrice, 'new price');
+  if (event.previousPrice <= event.newPrice) {
     throw new Error(
-      'Notification changes must contain a positive price decrease',
+      'Price decrease notifications must contain a positive price decrease',
     );
   }
 }
 
-function mapChangeRow(row: NotificationChangeRow): NotificationChangeRecord {
-  return {
+function validatePrice(price: number, label: string): void {
+  if (!Number.isSafeInteger(price) || price < 0) {
+    throw new Error(`${label} must be a non-negative integer in öre`);
+  }
+}
+
+function mapEventRow(row: NotificationEventRow): NotificationEventRecord {
+  const identity = {
     id: row.id,
     notificationId: row.notification_id,
     productId: row.product_id,
     storeId: row.store_id,
+  };
+
+  if (row.event_type === 'FIRST_OBSERVED') {
+    return {
+      ...identity,
+      type: 'FIRST_OBSERVED',
+      currentPrice: row.new_price,
+    };
+  }
+
+  if (row.previous_price === null || row.decrease === null) {
+    throw new Error(`Notification event ${row.id} is missing decrease data`);
+  }
+
+  return {
+    ...identity,
+    type: 'PRICE_DECREASE',
     previousPrice: row.previous_price,
     newPrice: row.new_price,
     decrease: row.decrease,

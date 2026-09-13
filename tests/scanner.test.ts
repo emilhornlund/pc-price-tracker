@@ -23,7 +23,20 @@ describe('scanProduct', () => {
     expect(fetchPage).toHaveBeenCalledWith(productUrl);
     expect(parsePage).toHaveBeenCalledWith('<html>fixture</html>');
     expect(result.product.title).toBe('Example product');
-    expect(result.decreases).toEqual([]);
+    expect(result.priceEvents).toEqual([
+      {
+        type: 'FIRST_OBSERVED',
+        product: 'Example product',
+        store: 'Same name',
+        currentPrice: 159_900,
+      },
+      {
+        type: 'FIRST_OBSERVED',
+        product: 'Example product',
+        store: 'Same name',
+        currentPrice: 149_900,
+      },
+    ]);
     expect(result.offers.map(({ store }) => store.id)).toEqual([
       'store-1',
       'store-2',
@@ -66,6 +79,8 @@ describe('scanProduct', () => {
 
     expect(second.product.id).toBe(first.product.id);
     expect(second.offers[0].store.id).toBe(first.offers[0].store.id);
+    expect(first.priceEvents).toHaveLength(1);
+    expect(second.priceEvents).toEqual([]);
     expect(
       database
         .prepare('SELECT COUNT(*) AS count FROM price_observations')
@@ -101,9 +116,17 @@ describe('scanProduct', () => {
     const first = await scanProduct(productUrl, dependencies);
     const second = await scanProduct(productUrl, dependencies);
 
-    expect(first.decreases).toEqual([]);
-    expect(second.decreases).toEqual([
+    expect(first.priceEvents).toEqual([
       {
+        type: 'FIRST_OBSERVED',
+        product: 'Example product',
+        store: 'Example store',
+        currentPrice: 159_900,
+      },
+    ]);
+    expect(second.priceEvents).toEqual([
+      {
+        type: 'PRICE_DECREASE',
         product: 'Example product',
         store: 'Example store',
         previousPrice: 159_900,
@@ -121,7 +144,7 @@ describe('scanProduct', () => {
     closeDatabase(database);
   });
 
-  it('establishes a baseline for a store that appears on a later scan', async () => {
+  it('reports a first-observed event for a store that appears on a later scan', async () => {
     const database = openDatabase(':memory:');
     const productUrl = 'https://www.prisjakt.nu/produkt.php?p=2';
     const parsePage = jest
@@ -148,13 +171,20 @@ describe('scanProduct', () => {
     await scanProduct(productUrl, dependencies);
     const second = await scanProduct(productUrl, dependencies);
 
-    expect(second.decreases).toEqual([
+    expect(second.priceEvents).toEqual([
       {
+        type: 'PRICE_DECREASE',
         product: 'Example product',
         store: 'Existing store',
         previousPrice: 159_900,
         newPrice: 149_900,
         decrease: 10_000,
+      },
+      {
+        type: 'FIRST_OBSERVED',
+        product: 'Example product',
+        store: 'New store',
+        currentPrice: 129_900,
       },
     ]);
     expect(
@@ -209,7 +239,7 @@ describe('scanProduct', () => {
         error: new Error('temporary upstream failure'),
       },
     ]);
-    expect(result.decreases).toEqual([]);
+    expect(result.priceEvents).toHaveLength(2);
     expect(logger.error).toHaveBeenCalledWith(
       `Product scan failed for ${productUrls[1]}: temporary upstream failure`,
     );
@@ -220,7 +250,7 @@ describe('scanProduct', () => {
     );
     expect(
       logger.info.mock.calls.filter(
-        ([message]) => message === 'Decreases detected: 0',
+        ([message]) => message === 'Price events detected: 2',
       ),
     ).toHaveLength(1);
     expect(logger.info).toHaveBeenCalledWith('Scan completed');

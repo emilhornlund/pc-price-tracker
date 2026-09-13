@@ -3,13 +3,14 @@ import {
   parsePrisjaktProduct,
   type PrisjaktProduct,
 } from './prisjakt';
-import { buildPriceDecreaseEmail, type EmailContent } from './email';
+import { buildPriceEventsEmail, type EmailContent } from './email';
 import type { EmailSender } from './mailer';
 import {
   NotificationRepository,
+  type NotificationEventInput,
   type NotificationRecord,
 } from './notifications';
-import { detectPriceDecrease, type PriceDecrease } from './price-changes';
+import { detectPriceEvent, type PriceEvent } from './price-changes';
 import type { TrackerDatabase } from './database';
 import {
   PriceObservationRepository,
@@ -28,14 +29,14 @@ export interface ProductScanDependencies {
 export interface PersistedOffer {
   store: StoreRecord;
   observation: PriceObservationRecord;
-  change?: PriceDecrease;
+  event?: PriceEvent;
 }
 
 export interface PersistedProductScan {
   product: ProductRecord;
   parsed: PrisjaktProduct;
   offers: PersistedOffer[];
-  decreases: PriceDecrease[];
+  priceEvents: PriceEvent[];
 }
 
 export interface FailedProductScan {
@@ -46,7 +47,7 @@ export interface FailedProductScan {
 export interface AggregateScanResult {
   successfulProducts: PersistedProductScan[];
   failedProducts: FailedProductScan[];
-  decreases: PriceDecrease[];
+  priceEvents: PriceEvent[];
 }
 
 export interface ScanExecutionDependencies extends ProductScanDependencies {
@@ -74,30 +75,30 @@ export async function scanProduct(
   const observations = new PriceObservationRepository(dependencies.database);
   const product = products.findOrCreate(productUrl, parsed.title);
   const persistedOffers: PersistedOffer[] = [];
-  const decreases: PriceDecrease[] = [];
+  const priceEvents: PriceEvent[] = [];
 
   for (const offer of parsed.offers) {
     const storeId = offer.storeId ?? fallbackStoreId(offer.store);
     const store = stores.findOrCreate(storeId, offer.store);
     const previousObservation = observations.findLatest(product.id, store.id);
-    const change = detectPriceDecrease(
+    const event = detectPriceEvent(
       product.title,
       store.name,
       previousObservation?.price,
       offer.price,
     );
     const observation = observations.create(product.id, store.id, offer.price);
-    if (change !== undefined) {
-      decreases.push(change);
+    if (event !== undefined) {
+      priceEvents.push(event);
     }
     persistedOffers.push({
       store,
       observation,
-      ...(change === undefined ? {} : { change }),
+      ...(event === undefined ? {} : { event }),
     });
   }
 
-  return { product, parsed, offers: persistedOffers, decreases };
+  return { product, parsed, offers: persistedOffers, priceEvents };
 }
 
 export const persistScrapedProduct = scanProduct;
@@ -108,7 +109,7 @@ export async function scanProducts(
 ): Promise<AggregateScanResult> {
   const successfulProducts: PersistedProductScan[] = [];
   const failedProducts: FailedProductScan[] = [];
-  const decreases: PriceDecrease[] = [];
+  const priceEvents: PriceEvent[] = [];
   const logger = dependencies.logger ?? console;
 
   logger.info('Scan started');
@@ -119,7 +120,7 @@ export async function scanProducts(
     try {
       const result = await scanProduct(productUrl, dependencies);
       successfulProducts.push(result);
-      decreases.push(...result.decreases);
+      priceEvents.push(...result.priceEvents);
       logger.info(`Product title: ${result.product.title}`);
       logger.info(`Offers parsed: ${result.parsed.offers.length}`);
     } catch (error) {
@@ -131,9 +132,9 @@ export async function scanProducts(
     }
   }
 
-  logger.info(`Decreases detected: ${decreases.length}`);
+  logger.info(`Price events detected: ${priceEvents.length}`);
   logger.info('Scan completed');
-  return { successfulProducts, failedProducts, decreases };
+  return { successfulProducts, failedProducts, priceEvents };
 }
 
 export const scanConfiguredProducts = scanProducts;
@@ -145,8 +146,8 @@ export async function executeScan(
   const result = await scanProducts(productUrls, dependencies);
   const logger = dependencies.logger ?? console;
 
-  if (result.decreases.length === 0) {
-    logger.info('Email skipped: no price decreases');
+  if (result.priceEvents.length === 0) {
+    logger.info('Email skipped: no price events');
     return { ...result, emailSent: false };
   }
 
@@ -157,13 +158,13 @@ export async function executeScan(
 
   if (dependencies.emailSender === undefined) {
     const error = new Error(
-      'Price decreases were detected but no email sender is configured',
+      'Price events were detected but no email sender is configured',
     );
     logger.error(`Email failed: ${error.message}`);
     throw error;
   }
 
-  const emailContent = buildPriceDecreaseEmail(result.decreases);
+  const emailContent = buildPriceEventsEmail(result.priceEvents);
   try {
     await dependencies.emailSender.send(emailContent);
   } catch (error) {
@@ -176,9 +177,9 @@ export async function executeScan(
     dependencies.notificationRepository === undefined
       ? undefined
       : dependencies.notificationRepository.createSentNotification(
-          getNotificationChanges(result),
+          getNotificationEvents(result),
         );
-  logger.info(`Email sent: ${result.decreases.length} price decreases`);
+  logger.info(`Email sent: ${result.priceEvents.length} price events`);
   return {
     ...result,
     emailSent: true,
@@ -197,20 +198,33 @@ function asError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));
 }
 
-function getNotificationChanges(result: AggregateScanResult) {
+function getNotificationEvents(
+  result: AggregateScanResult,
+): NotificationEventInput[] {
   return result.successfulProducts.flatMap((productScan) =>
     productScan.offers.flatMap((persistedOffer) => {
-      const change = persistedOffer.change;
-      return change === undefined
-        ? []
-        : [
-            {
+      const event = persistedOffer.event;
+      if (event === undefined) {
+        return [];
+      }
+
+      const notificationEvent: NotificationEventInput =
+        event.type === 'FIRST_OBSERVED'
+          ? {
+              type: 'FIRST_OBSERVED',
               productId: productScan.product.id,
               storeId: persistedOffer.store.id,
-              previousPrice: change.previousPrice,
-              newPrice: change.newPrice,
-            },
-          ];
+              currentPrice: event.currentPrice,
+            }
+          : {
+              type: 'PRICE_DECREASE',
+              productId: productScan.product.id,
+              storeId: persistedOffer.store.id,
+              previousPrice: event.previousPrice,
+              newPrice: event.newPrice,
+            };
+
+      return [notificationEvent];
     }),
   );
 }

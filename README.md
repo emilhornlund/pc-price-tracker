@@ -2,7 +2,8 @@
 
 PC Price Tracker is a small self-hosted service that monitors explicitly
 configured Prisjakt product pages. It stores each store's price history in
-SQLite and sends one consolidated email after a scan when prices decrease.
+SQLite and sends one consolidated email after a scan for first observations
+and price decreases.
 
 ## Requirements
 

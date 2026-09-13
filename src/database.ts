@@ -65,14 +65,17 @@ export function initializeDatabase(database: TrackerDatabase): void {
       notification_id INTEGER NOT NULL,
       product_id INTEGER NOT NULL,
       store_id TEXT NOT NULL,
-      previous_price INTEGER NOT NULL,
+      event_type TEXT NOT NULL DEFAULT 'PRICE_DECREASE',
+      previous_price INTEGER,
       new_price INTEGER NOT NULL,
-      decrease INTEGER NOT NULL,
+      decrease INTEGER,
       FOREIGN KEY (notification_id) REFERENCES notifications (id),
       FOREIGN KEY (product_id) REFERENCES products (id),
       FOREIGN KEY (store_id) REFERENCES stores (id)
     );
   `);
+
+  migrateNotificationChanges(database);
 }
 
 export function closeDatabase(database: TrackerDatabase): void {
@@ -87,4 +90,60 @@ function ensureDatabaseDirectory(databasePath: string): void {
   }
 
   mkdirSync(path.dirname(path.resolve(databasePath)), { recursive: true });
+}
+
+interface NotificationChangesColumn {
+  name: string;
+  notnull: number;
+}
+
+function migrateNotificationChanges(database: TrackerDatabase): void {
+  const columns = database
+    .prepare('PRAGMA table_info(notification_changes)')
+    .all() as NotificationChangesColumn[];
+  const eventType = columns.find((column) => column.name === 'event_type');
+  const previousPrice = columns.find(
+    (column) => column.name === 'previous_price',
+  );
+  const decrease = columns.find((column) => column.name === 'decrease');
+
+  if (
+    eventType !== undefined &&
+    previousPrice?.notnull === 0 &&
+    decrease?.notnull === 0
+  ) {
+    return;
+  }
+
+  const migrate = database.transaction(() => {
+    database.exec(
+      'ALTER TABLE notification_changes RENAME TO notification_changes_legacy',
+    );
+    database.exec(`
+      CREATE TABLE notification_changes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        notification_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        store_id TEXT NOT NULL,
+        event_type TEXT NOT NULL DEFAULT 'PRICE_DECREASE',
+        previous_price INTEGER,
+        new_price INTEGER NOT NULL,
+        decrease INTEGER,
+        FOREIGN KEY (notification_id) REFERENCES notifications (id),
+        FOREIGN KEY (product_id) REFERENCES products (id),
+        FOREIGN KEY (store_id) REFERENCES stores (id)
+      );
+
+      INSERT INTO notification_changes
+        (id, notification_id, product_id, store_id, event_type,
+         previous_price, new_price, decrease)
+      SELECT id, notification_id, product_id, store_id, 'PRICE_DECREASE',
+             previous_price, new_price, decrease
+      FROM notification_changes_legacy;
+
+      DROP TABLE notification_changes_legacy;
+    `);
+  });
+
+  migrate();
 }

@@ -1,7 +1,22 @@
-import { comparePrices, detectPriceDecrease } from '../src/price-changes';
+import {
+  comparePrices,
+  detectPriceDecrease,
+  detectPriceEvent,
+} from '../src/price-changes';
+
+describe('detectPriceEvent', () => {
+  it('returns a first-observed event when there is no previous observation', () => {
+    expect(detectPriceEvent('Product', 'Store', undefined, 149_900)).toEqual({
+      type: 'FIRST_OBSERVED',
+      product: 'Product',
+      store: 'Store',
+      currentPrice: 149_900,
+    });
+  });
+});
 
 describe('detectPriceDecrease', () => {
-  it('establishes a baseline when there is no previous observation', () => {
+  it('does not detect a decrease when there is no previous observation', () => {
     expect(
       detectPriceDecrease('Product', 'Store', undefined, 149_900),
     ).toBeUndefined();

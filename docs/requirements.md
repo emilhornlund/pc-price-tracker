@@ -4,7 +4,7 @@
 
 PC Price Tracker is a small self-hosted service for monitoring prices of explicitly configured Prisjakt product pages.
 
-The application periodically scrapes each configured product URL, records the prices offered by individual stores, detects price decreases, and sends a single consolidated email after the scan when decreases have been detected.
+The application periodically scrapes each configured product URL, records the prices offered by individual stores, detects first observations and price decreases, and sends a single consolidated email after the scan when notification events have been detected.
 
 The project should intentionally remain small and focused.
 
@@ -25,10 +25,10 @@ The application must:
 
 5. Persist price observations in a database.
 6. Run automatically a few times per day.
-7. Detect price decreases between scans.
+7. Detect first observations and price decreases between scans.
 8. Finish scanning all configured products before sending notifications.
 9. Send at most one consolidated email per scan.
-10. Include all detected price decreases from that scan in the email.
+10. Include all detected notification events from that scan in the email.
 11. Be configured through a YAML file.
 12. Support embedding the YAML configuration directly in Docker Compose.
 13. Run as a Docker container.
@@ -157,7 +157,7 @@ All products processed
 
     ↓
 
-Evaluate detected decreases
+Evaluate detected notification events
 
     ↓
 
@@ -256,7 +256,7 @@ The first observation establishes the baseline.
 It must therefore:
 
 - Be persisted.
-- Not trigger a price-decrease notification.
+- Trigger a `FIRST_OBSERVED` notification.
 
 ---
 
@@ -264,24 +264,24 @@ It must therefore:
 
 If a new store appears for an already tracked product, its first observation is also treated as a baseline.
 
-It should not be considered a decrease simply because the store was not present previously.
+It should trigger a `FIRST_OBSERVED` notification and should not be considered a decrease simply because the store was not present previously.
 
 ---
 
 # 9. Notifications
 
-After all products have been scanned, the application should collect every detected price decrease.
+After all products have been scanned, the application should collect every detected notification event.
 
-If there are no decreases:
+If there are no notification events:
 
 ```text
 Do not send an email.
 ```
 
-If one or more decreases exist:
+If one or more notification events exist:
 
 ```text
-Send exactly one email containing all decreases.
+Send exactly one email containing all first observations and decreases.
 ```
 
 Example:
@@ -307,9 +307,18 @@ New price: 1,599 SEK
 Decrease: 150 SEK
 ```
 
-Each notification entry must contain at minimum:
+Each first-observed notification entry must contain at minimum:
 
 - Product title.
+- Store.
+- Current price.
+- Status: First observed.
+
+Each price-decrease notification entry must contain at minimum:
+
+- Product title.
+- Store.
+- Previous price.
 - New price.
 - Price decrease.
 
@@ -324,10 +333,12 @@ The database should preserve enough state to prevent duplicate notifications and
 The minimum useful notification information is:
 
 ```text
+event_type
 product
 store
-previous_price
-new_price
+previous_price (for price decreases)
+new_price (or current_price for first observations)
+decrease (for price decreases)
 notified_at
 ```
 
@@ -441,14 +452,16 @@ id
 sent_at
 ```
 
-Individual changes associated with the notification can contain:
+Individual events associated with the notification can contain:
 
 ```text
 notification_id
+event_type
 product_id
-store
-previous_price
+store_id
+previous_price (for price decreases)
 new_price
+decrease (for price decreases)
 ```
 
 This provides an audit trail of what was actually included in each email.
@@ -883,17 +896,17 @@ For a normal scheduled execution:
 
 6. New observations are persisted.
 
-7. Any store-specific price decreases are collected.
+7. Any first observations and store-specific price decreases are collected.
 
 8. Remaining products are scanned.
 
 9. After every configured product has been attempted:
 
-   - No decreases:
-       No email.
+   - No notification events:
+        No email.
 
-   - One or more decreases:
-       Send one consolidated email.
+   - One or more notification events:
+        Send one consolidated email.
 
 10. Successful notification information is persisted.
 
@@ -1025,9 +1038,9 @@ Version 1 is complete when the application can:
 - Persist historical store prices in SQLite.
 - Run several times per day automatically.
 - Compare current prices with the previous scan.
-- Detect store-specific price decreases.
+- Detect first observations and store-specific price decreases.
 - Finish the complete scan before notifying.
-- Send one email containing every decrease detected in the scan.
+- Send one email containing every notification event detected in the scan.
 - Run entirely in Docker.
 - Persist its database through a Docker volume.
 - Accept its YAML configuration through Docker Compose `configs`.

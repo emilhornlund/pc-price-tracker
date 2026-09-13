@@ -4,7 +4,7 @@ import { ProductRepository } from '../src/products';
 import { StoreRepository } from '../src/stores';
 
 describe('NotificationRepository', () => {
-  it('records a sent notification and every associated price change', () => {
+  it('records first-observed events and price decreases in one notification', () => {
     const database = openDatabase(':memory:');
     const products = new ProductRepository(database);
     const stores = new StoreRepository(database);
@@ -15,6 +15,13 @@ describe('NotificationRepository', () => {
     const notification = notifications.createSentNotification(
       [
         {
+          type: 'FIRST_OBSERVED',
+          productId: product.id,
+          storeId: store.id,
+          currentPrice: 169_900,
+        },
+        {
+          type: 'PRICE_DECREASE',
           productId: product.id,
           storeId: store.id,
           previousPrice: 159_900,
@@ -27,12 +34,21 @@ describe('NotificationRepository', () => {
     expect(notification).toEqual({
       id: notification.id,
       sentAt: '2026-09-12T19:00:00.000Z',
-      changes: [
+      events: [
         {
-          id: notification.changes[0].id,
+          id: notification.events[0].id,
           notificationId: notification.id,
           productId: product.id,
           storeId: store.id,
+          type: 'FIRST_OBSERVED',
+          currentPrice: 169_900,
+        },
+        {
+          id: notification.events[1].id,
+          notificationId: notification.id,
+          productId: product.id,
+          storeId: store.id,
+          type: 'PRICE_DECREASE',
           previousPrice: 159_900,
           newPrice: 149_900,
           decrease: 10_000,
@@ -54,7 +70,7 @@ describe('NotificationRepository', () => {
     const notifications = new NotificationRepository(database);
 
     expect(() => notifications.createSentNotification([])).toThrow(
-      'at least one price change',
+      'at least one price event',
     );
 
     closeDatabase(database);

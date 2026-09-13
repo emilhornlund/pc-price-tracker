@@ -468,7 +468,7 @@ Rules:
 ```text
 No previous observation
 → establish baseline
-→ no decrease
+→ first-observed event
 
 Current == previous
 → no decrease
@@ -520,7 +520,7 @@ A previously unseen store must:
 - Be created in the `stores` table if it does not already exist.
 - Be referenced from the new price observation through `store_id`.
 - Establish its initial baseline for that product.
-- Not produce a price decrease.
+- Produce a first-observed event, not a price decrease.
 
 Add a regression test covering this scenario.
 
@@ -536,7 +536,7 @@ A scan must:
 2. Fetch each product.
 3. Parse each product.
 4. Persist its observations.
-5. Collect all detected price decreases.
+5. Collect all detected price events.
 6. Continue until every configured product has been attempted.
 7. Return one aggregate scan result.
 
@@ -544,7 +544,7 @@ The scan result should distinguish:
 
 - Successful products.
 - Failed products.
-- Detected price decreases.
+- Detected price events.
 
 Do not send email inside individual product processing.
 
@@ -587,7 +587,7 @@ Log at minimum:
 - Product URL being processed.
 - Product title when available.
 - Number of offers parsed.
-- Number of decreases detected.
+- Number of price events detected.
 - Individual product failures.
 - Email skipped/sent/failed.
 - Scan completed.
@@ -600,14 +600,14 @@ Requirements:
 
 ---
 
-## [X] 24. Build email content from price decreases
+## [X] 24. Build email content from price events
 
 Implement pure email content generation.
 
 Input:
 
 ```text
-list of detected decreases
+list of detected price events
 ```
 
 Output:
@@ -624,7 +624,14 @@ Each decrease must include:
 - New price.
 - Price decrease.
 
-The email should represent all decreases from the completed scan.
+Each first-observed event must include:
+
+- Product title.
+- Store.
+- Current price.
+- First-observed status.
+
+The email should represent all price events from the completed scan.
 
 Add snapshot or exact-content unit tests.
 
@@ -665,14 +672,14 @@ Integrate notifications with scan execution.
 After all products have been attempted:
 
 ```text
-0 decreases
+0 price events
 → do not send email
 
-1+ decreases
+1+ price events
 → send exactly one email
 ```
 
-The email must contain every decrease collected during that scan.
+The email must contain every price event collected during that scan.
 
 Ensure:
 
@@ -691,11 +698,12 @@ Create minimal persistence for successfully sent notifications.
 Persist enough information to know:
 
 - When the notification was sent.
-- Which price decreases were included.
+- Which price events were included.
 - Product.
 - Store.
 - Previous price.
 - New price.
+- Current price for first-observed events.
 
 Suggested model:
 
@@ -1005,7 +1013,7 @@ At minimum test:
 ```text
 No prior observations
 → observations persisted
-→ no notification
+→ first-observed notifications sent
 ```
 
 ### Unchanged prices
@@ -1043,7 +1051,7 @@ multiple products/stores decrease
 
 ```text
 new store appears
-→ baseline only
+→ first-observed notification
 → no false decrease
 ```
 
@@ -1171,13 +1179,13 @@ Before release, explicitly verify notification behavior using controlled price d
 Confirm:
 
 ```text
-No decreases
+No price events
 → no email
 
 One decrease
 → one email
 
-Several decreases across several products
+Several price events across several products
 → one email containing all of them
 ```
 
@@ -1229,7 +1237,7 @@ Compare with previous observations
         ↓
 Persist price history
         ↓
-Collect decreases
+Collect price events
         ↓
 Send one consolidated email
         ↓
