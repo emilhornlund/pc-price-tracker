@@ -2,6 +2,7 @@
 .github
 .idea
 .opencode
+.env
 config.yaml
 dist
 node_modules

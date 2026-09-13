@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 import { parseCliArgs } from './cli';
 import { createApplication } from './app';
 import { registerGracefulShutdown } from './shutdown';
